@@ -40,6 +40,12 @@ SUPABASE_KEY = _secret("SUPABASE_SERVICE_KEY")
 # Si vide, on vérifie le champ role="admin" dans Firestore.
 ADMIN_EMAILS = [e.strip().lower() for e in _secret("ADMIN_EMAILS", "").split(",") if e.strip()]
 
+# Face++ pour la vérification automatique de visage (CIN ↔ photo profil)
+# Inscription gratuite : https://www.faceplusplus.com/  (30 000 appels/mois)
+FACEPP_KEY    = _secret("FACEPP_API_KEY")
+FACEPP_SECRET = _secret("FACEPP_API_SECRET")
+FACE_MATCH_THRESHOLD = 70.0  # Score minimum pour considérer comme match (0-100)
+
 # ─── Couleurs ─────────────────────────────────────────────────────────────────
 GREEN   = "#1D9E75"
 GREEN_D = "#0F6E56"
@@ -202,6 +208,53 @@ def _photo(url: str | None, label: str):
         st.error(f"⚠️ Photo inaccessible")
         st.markdown(f"[Voir le fichier directement]({display_url})")
         st.caption(f"_{str(e)[:80]}_")
+
+
+# ─── Face++ : vérification de correspondance de visage ────────────────────────
+@st.cache_data(ttl=86400, show_spinner=False)
+def _face_compare(url1: str, url2: str) -> dict:
+    """Compare 2 photos via Face++ et retourne {confidence, error}.
+    confidence : 0-100 (>= FACE_MATCH_THRESHOLD = match probable)."""
+    if not (url1 and url2):
+        return {"confidence": None, "error": "URL manquante"}
+    if not (FACEPP_KEY and FACEPP_SECRET):
+        return {"confidence": None, "error": "Face++ non configuré"}
+    try:
+        # Convertit en URLs signées (accessibles publiquement par Face++)
+        u1 = _signed_url(url1)
+        u2 = _signed_url(url2)
+        r = requests.post(
+            "https://api-us.faceplusplus.com/facepp/v3/compare",
+            data={
+                "api_key":     FACEPP_KEY,
+                "api_secret":  FACEPP_SECRET,
+                "image_url1":  u1,
+                "image_url2":  u2,
+            },
+            timeout=20,
+        )
+        data = r.json()
+        if "error_message" in data:
+            return {"confidence": None, "error": data["error_message"]}
+        return {"confidence": float(data.get("confidence", 0)), "error": None}
+    except Exception as e:
+        return {"confidence": None, "error": str(e)[:120]}
+
+
+def _face_match_badge(confidence: float | None, error: str | None) -> str:
+    """Génère un badge HTML pour le score de correspondance."""
+    if confidence is None:
+        return (f"<div style='background:#F3F4F6;color:#6B7280;padding:8px 12px;"
+                f"border-radius:8px;font-size:13px'>⚙️ Vérification visage : "
+                f"<i>{error or 'non disponible'}</i></div>")
+    if confidence >= FACE_MATCH_THRESHOLD:
+        return (f"<div style='background:#D1FAE5;color:#065F46;padding:10px 14px;"
+                f"border-radius:8px;font-weight:600'>"
+                f"✅ Visages correspondants — confiance {confidence:.1f}%</div>")
+    return (f"<div style='background:#FEE2E2;color:#991B1B;padding:10px 14px;"
+            f"border-radius:8px;font-weight:600'>"
+            f"❌ Visages NON correspondants — confiance {confidence:.1f}% "
+            f"(seuil: {FACE_MATCH_THRESHOLD}%)</div>")
 
 
 # ─── Login ────────────────────────────────────────────────────────────────────
@@ -574,6 +627,18 @@ def tab_kyc():
                 with p2: _photo(u.get("cinRectoUrl"), "🪪 CIN Recto")
                 with p3: _photo(u.get("cinVersoUrl"), "🪪 CIN Verso")
 
+                # ── Vérification automatique du visage : photo profil vs CIN recto ──
+                photo_url = u.get("photoUrl")
+                cin_url   = u.get("cinRectoUrl")
+                if photo_url and cin_url:
+                    face_result = _face_compare(photo_url, cin_url)
+                    st.markdown(
+                        _face_match_badge(face_result["confidence"], face_result["error"]),
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.info("⚙️ Vérification visage : photo de profil ou CIN manquante")
+
             with col_actions:
                 st.markdown(f"**UID :** `{uid[:14]}...`")
                 st.markdown(f"**Email :** {email or '—'}")
@@ -582,6 +647,27 @@ def tab_kyc():
                 st.markdown("---")
 
                 if statut == "en_verification":
+                    # Bouton de rejet automatique si visages ne correspondent pas
+                    if photo_url and cin_url:
+                        face_result = _face_compare(photo_url, cin_url)
+                        conf = face_result["confidence"]
+                        if conf is not None and conf < FACE_MATCH_THRESHOLD:
+                            if st.button("🚫 Rejet auto (visages différents)",
+                                         key=f"autorej_{uid}_{idx}",
+                                         use_container_width=True, type="primary"):
+                                fs_patch("users", uid, {
+                                    "kycStatut": "rejete",
+                                    "kycMotifRejet": f"Photo de profil ne correspond pas à la CIN (score: {conf:.1f}%)",
+                                    "kycTraiteLe": datetime.now(timezone.utc).isoformat(),
+                                }, _token())
+                                fs_add("notifications", {
+                                    "userId": uid, "titre": "KYC Rejeté ❌",
+                                    "corps": "Votre photo de profil ne correspond pas à votre CIN. Soumettez à nouveau.",
+                                    "lu": False,
+                                }, _token())
+                                st.warning("❌ Auto-rejeté pour non-correspondance.")
+                                st.rerun()
+
                     motif = st.text_area("Motif rejet", key=f"motif_{uid}", height=60,
                                          placeholder="Obligatoire si rejet")
                     ca, cr = st.columns(2)
