@@ -539,18 +539,25 @@ def tab_users():
 
         with col_actions:
             st.markdown("**Actions rapides**")
-            new_role = st.selectbox("Changer rôle", ["user","admin","voyageur"],
-                                    index=["user","admin","voyageur"].index(u.get("role","user")))
+            roles_options = ["user", "admin", "voyageur", "expediteur"]
+            current_role = u.get("role", "user") or "user"
+            # Si le rôle actuel n'est pas dans la liste, l'ajouter dynamiquement
+            if current_role not in roles_options:
+                roles_options.append(current_role)
+            new_role = st.selectbox("Changer rôle", roles_options,
+                                    index=roles_options.index(current_role))
             if st.button("💾 Sauvegarder rôle", use_container_width=True):
                 fs_patch("users", uid, {"role": new_role}, _token())
                 st.success("✅ Rôle mis à jour !")
                 st.rerun()
 
             st.markdown("---")
-            new_kyc = st.selectbox("Changer statut KYC",
-                                   ["non_soumis","en_verification","approuve","rejete"],
-                                   index=["non_soumis","en_verification","approuve","rejete"]
-                                   .index(u.get("kycStatut","non_soumis")))
+            kyc_options = ["non_soumis", "en_verification", "approuve", "rejete"]
+            current_kyc = u.get("kycStatut", "non_soumis") or "non_soumis"
+            if current_kyc not in kyc_options:
+                kyc_options.append(current_kyc)
+            new_kyc = st.selectbox("Changer statut KYC", kyc_options,
+                                   index=kyc_options.index(current_kyc))
             if st.button("💾 Sauvegarder KYC", use_container_width=True):
                 fs_patch("users", uid, {"kycStatut": new_kyc}, _token())
                 st.success("✅ KYC mis à jour !")
