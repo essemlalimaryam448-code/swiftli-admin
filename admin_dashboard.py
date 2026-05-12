@@ -813,26 +813,306 @@ def tab_dashboard():
             } for u in users[-8:]])
             st.dataframe(df_u, use_container_width=True, hide_index=True)
 
-    # Récentes demandes
+    # ── PANNEAU D'ALERTES & ACTIONS RAPIDES ──────────────────────────────
     st.markdown("---")
-    st.subheader("📦 Dernières demandes")
-    if demandes:
-        df_d = pd.DataFrame([{
-            "ID":        d["_id"][:8],
-            "Départ":    d.get("villeDepart",""),
-            "Arrivée":   d.get("villeArrivee",""),
-            "Expéditeur":d.get("expediteurNom",""),
-            "Prix":      f"{d.get('prixPropose',0)} MAD",
-            "Statut":    d.get("statut",""),
-            "Paiement":  d.get("paiementStatut",""),
-        } for d in reversed(demandes[-15:])])
-        st.dataframe(df_d, use_container_width=True, hide_index=True)
+    st.markdown(f"""
+    <div style="font-size:1.3rem;font-weight:800;color:{GREEN_D};margin-bottom:14px">
+        🚨 Centre de décision
+    </div>
+    """, unsafe_allow_html=True)
+
+    alert_col1, alert_col2, alert_col3 = st.columns(3)
+
+    # Alerte KYC en attente
+    with alert_col1:
+        if kyc_pending > 0:
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+                border-left: 4px solid {AMBER};
+                border-radius: 14px;
+                padding: 16px;
+                box-shadow: 0 4px 12px rgba(239, 159, 39, 0.15);
+                height: 110px;
+            ">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                    <span style="font-size:1.4rem">🟡</span>
+                    <span style="font-weight:700;color:#92400E;font-size:0.95rem">KYC à valider</span>
+                </div>
+                <div style="font-size:2rem;font-weight:900;color:#92400E;line-height:1">{kyc_pending}</div>
+                <div style="font-size:0.8rem;color:#92400E;opacity:0.8;margin-top:4px">
+                    Action requise — Section "🆔 KYC"
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+                border-left: 4px solid {GREEN};
+                border-radius: 14px;
+                padding: 16px;
+                height: 110px;
+            ">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                    <span style="font-size:1.4rem">✅</span>
+                    <span style="font-weight:700;color:#065F46;font-size:0.95rem">Tous les KYC traités</span>
+                </div>
+                <div style="font-size:0.9rem;color:#065F46;margin-top:4px">
+                    Aucune action requise pour l'instant.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Alerte Litiges
+    nb_litiges = sum(1 for d in demandes if "litige" in d.get("statut", ""))
+    with alert_col2:
+        if nb_litiges > 0 or len(reclams) > 0:
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #FEE2E2 0%, #FCA5A5 100%);
+                border-left: 4px solid {RED};
+                border-radius: 14px;
+                padding: 16px;
+                box-shadow: 0 4px 12px rgba(226, 75, 74, 0.15);
+                height: 110px;
+            ">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                    <span style="font-size:1.4rem">🚨</span>
+                    <span style="font-weight:700;color:#991B1B;font-size:0.95rem">Litiges & Réclamations</span>
+                </div>
+                <div style="font-size:2rem;font-weight:900;color:#991B1B;line-height:1">{nb_litiges + len(reclams)}</div>
+                <div style="font-size:0.8rem;color:#991B1B;opacity:0.8;margin-top:4px">
+                    {nb_litiges} litiges · {len(reclams)} réclamations
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+                border-left: 4px solid {GREEN};
+                border-radius: 14px;
+                padding: 16px;
+                height: 110px;
+            ">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                    <span style="font-size:1.4rem">🛡️</span>
+                    <span style="font-weight:700;color:#065F46;font-size:0.95rem">Plateforme saine</span>
+                </div>
+                <div style="font-size:0.9rem;color:#065F46;margin-top:4px">
+                    Aucun litige ni réclamation actuellement.
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # Taux de conversion
+    with alert_col3:
+        taux_conv = (livrees / len(demandes) * 100) if demandes else 0
+        couleur = GREEN if taux_conv >= 70 else (AMBER if taux_conv >= 40 else RED)
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
+            color: white;
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(15, 110, 86, 0.25);
+            height: 110px;
+        ">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <span style="font-size:1.4rem">📈</span>
+                <span style="font-weight:700;font-size:0.95rem">Taux de livraison</span>
+            </div>
+            <div style="font-size:2rem;font-weight:900;line-height:1">{taux_conv:.0f}%</div>
+            <div style="font-size:0.8rem;opacity:0.9;margin-top:4px">
+                {livrees}/{len(demandes)} demandes livrées
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── FEED D'ACTIVITÉ + TOP VOYAGEURS ──────────────────────────────────
+    st.markdown("---")
+    activity_col, top_col = st.columns([3, 2])
+
+    with activity_col:
+        st.markdown(f"""
+        <div style="font-size:1.15rem;font-weight:800;color:{GREEN_D};margin-bottom:14px">
+            📰 Activité récente
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Combine demandes + users pour feed
+        events = []
+        for u in users[-10:]:
+            events.append({
+                "icon": "👤",
+                "title": f"Nouvel utilisateur : {u.get('prenom','')} {u.get('nom','')}".strip() or "Utilisateur inscrit",
+                "subtitle": u.get("email", ""),
+                "time": (u.get("createdAt") or "")[:16],
+                "color": BLUE,
+            })
+        for d in demandes[-10:]:
+            statut = d.get("statut", "")
+            icon = "📦"
+            color = AMBER
+            if statut == "livree":
+                icon = "✅"; color = GREEN
+            elif statut == "litige":
+                icon = "🚨"; color = RED
+            events.append({
+                "icon": icon,
+                "title": f"{d.get('villeDepart','')} → {d.get('villeArrivee','')}",
+                "subtitle": f"{d.get('expediteurNom','—')} · {d.get('prixPropose',0)} MAD · {statut}",
+                "time": (d.get("createdAt") or "")[:16],
+                "color": color,
+            })
+
+        # Tri par date desc
+        events.sort(key=lambda e: e["time"], reverse=True)
+        events = events[:12]
+
+        if events:
+            for evt in events:
+                st.markdown(f"""
+                <div style="
+                    display:flex; align-items:flex-start; gap:12px;
+                    padding:12px 14px; margin-bottom:8px;
+                    background:white; border-radius:12px;
+                    border:1px solid #E5E7EB;
+                    transition:all 0.2s ease;
+                ">
+                    <div style="
+                        width:36px; height:36px;
+                        background:{evt['color']}22; color:{evt['color']};
+                        border-radius:10px;
+                        display:flex; align-items:center; justify-content:center;
+                        font-size:1.1rem;
+                        flex-shrink:0;
+                    ">{evt['icon']}</div>
+                    <div style="flex:1; min-width:0">
+                        <div style="font-weight:600; color:#1F2937; font-size:0.9rem">{evt['title']}</div>
+                        <div style="font-size:0.78rem; color:#6B7280; margin-top:2px">{evt['subtitle']}</div>
+                    </div>
+                    <div style="font-size:0.7rem; color:#9CA3AF; white-space:nowrap">{evt['time'][:10]}</div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("Aucune activité récente.")
+
+    with top_col:
+        st.markdown(f"""
+        <div style="font-size:1.15rem;font-weight:800;color:{GREEN_D};margin-bottom:14px">
+            🏆 Top voyageurs
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Calcul des voyageurs avec le plus de livraisons
+        voy_count: dict[str, dict] = {}
+        for d in demandes:
+            if d.get("statut") in ("livree", "payée"):
+                vid = d.get("voyageurId", "")
+                if vid:
+                    if vid not in voy_count:
+                        voy_count[vid] = {"nom": d.get("voyageurNom", "Inconnu"), "count": 0, "ca": 0}
+                    voy_count[vid]["count"] += 1
+                    voy_count[vid]["ca"] += float(d.get("prixPropose", 0))
+
+        top_voy = sorted(voy_count.values(), key=lambda v: v["count"], reverse=True)[:5]
+
+        if top_voy:
+            medals = ["🥇", "🥈", "🥉", "4.", "5."]
+            for i, v in enumerate(top_voy):
+                medal = medals[i] if i < 3 else f"{i+1}."
+                initial = v["nom"][0].upper() if v["nom"] else "?"
+                bg_color = "#FFD700" if i == 0 else ("#C0C0C0" if i == 1 else ("#CD7F32" if i == 2 else "#E5E7EB"))
+                st.markdown(f"""
+                <div style="
+                    display:flex; align-items:center; gap:10px;
+                    padding:10px 12px; margin-bottom:8px;
+                    background:white; border-radius:12px;
+                    border:1px solid #E5E7EB;
+                ">
+                    <div style="font-size:1.3rem;flex-shrink:0">{medal}</div>
+                    <div style="
+                        width:36px; height:36px;
+                        background:linear-gradient(135deg, {bg_color}, {bg_color}88);
+                        border-radius:50%;
+                        display:flex; align-items:center; justify-content:center;
+                        font-weight:800; color:white;
+                        flex-shrink:0;
+                    ">{initial}</div>
+                    <div style="flex:1; min-width:0">
+                        <div style="font-weight:700; color:#1F2937; font-size:0.88rem">{v['nom']}</div>
+                        <div style="font-size:0.75rem; color:#6B7280">
+                            {v['count']} livraisons · {v['ca']:.0f} MAD
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("Aucun voyageur actif pour l'instant.")
+
+        # Top routes
+        st.markdown(f"""
+        <div style="font-size:1.15rem;font-weight:800;color:{GREEN_D};margin:20px 0 14px">
+            🗺️ Top trajets
+        </div>
+        """, unsafe_allow_html=True)
+
+        route_count: dict[str, int] = {}
+        for d in demandes:
+            if d.get("villeDepart") and d.get("villeArrivee"):
+                k = f"{d['villeDepart']} → {d['villeArrivee']}"
+                route_count[k] = route_count.get(k, 0) + 1
+
+        top_routes = sorted(route_count.items(), key=lambda x: x[1], reverse=True)[:5]
+        if top_routes:
+            max_count = top_routes[0][1] if top_routes else 1
+            for route, count in top_routes:
+                pct = (count / max_count) * 100
+                st.markdown(f"""
+                <div style="
+                    padding:10px 12px; margin-bottom:6px;
+                    background:white; border-radius:10px;
+                    border:1px solid #E5E7EB;
+                ">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+                        <div style="font-weight:600; color:#1F2937; font-size:0.85rem">{route}</div>
+                        <div style="font-weight:700; color:{GREEN_D}; font-size:0.85rem">{count}</div>
+                    </div>
+                    <div style="
+                        background:#E5E7EB; height:6px; border-radius:3px; overflow:hidden;
+                    ">
+                        <div style="
+                            background:linear-gradient(90deg, {GREEN} 0%, {GREEN_D} 100%);
+                            height:100%; width:{pct}%; border-radius:3px;
+                            transition: width 0.5s ease;
+                        "></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("Aucun trajet pour l'instant.")
 
 
 # ─── 2. Utilisateurs ──────────────────────────────────────────────────────────
 def tab_users():
-    st.markdown('<div class="section-title">👥 Gestion des Utilisateurs</div>',
-                unsafe_allow_html=True)
+    # Header hero
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #185FA5 0%, #1E40AF 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(24, 95, 165, 0.25);
+        margin-bottom: 20px;
+        position: relative; overflow: hidden;
+    ">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">👥 Gestion des utilisateurs</h2>
+        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Filtrer, rechercher et gérer tous les comptes Swiftli</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.spinner("Chargement..."):
         users = fs_get("users", _token())
@@ -841,14 +1121,33 @@ def tab_users():
         st.info("Aucun utilisateur.")
         return
 
-    # Filtres
-    col_f1, col_f2, col_f3 = st.columns([2, 1, 1])
+    # ── Mini stats en haut ──
+    s1, s2, s3, s4 = st.columns(4)
+    s1.metric("Total", len(users))
+    s2.metric("✅ Vérifiés", sum(1 for u in users if u.get("kycStatut") == "approuve"))
+    s3.metric("🟡 En attente", sum(1 for u in users if u.get("kycStatut") == "en_verification"))
+    s4.metric("⭐ Note moyenne",
+              f"{(sum((u.get('note') or 0) for u in users) / max(1, sum(1 for u in users if u.get('note')))):.1f}/5"
+              if any(u.get('note') for u in users) else "—")
+
+    st.markdown("---")
+
+    # ── Toolbar de filtres ──
+    st.markdown(f"""
+    <div style="font-size:1rem;font-weight:700;color:{GREEN_D};margin-bottom:10px">
+        🔧 Filtres et recherche
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_f1, col_f2, col_f3, col_f4 = st.columns([2, 1, 1, 1])
     with col_f1:
-        search = st.text_input("🔍 Rechercher (nom, email, UID)", "")
+        search = st.text_input("🔍 Rechercher", placeholder="Nom, email ou UID...")
     with col_f2:
-        role_f = st.selectbox("Rôle", ["Tous", "user", "admin", "voyageur"])
+        role_f = st.selectbox("Rôle", ["Tous", "user", "admin", "voyageur", "expediteur"])
     with col_f3:
         kyc_f = st.selectbox("KYC", ["Tous", "non_soumis", "en_verification", "approuve", "rejete"])
+    with col_f4:
+        view_mode = st.selectbox("Vue", ["📊 Tableau", "🃏 Cartes"])
 
     filtered = users
     if search:
@@ -862,21 +1161,86 @@ def tab_users():
     if kyc_f != "Tous":
         filtered = [u for u in filtered if u.get("kycStatut","non_soumis") == kyc_f]
 
-    st.info(f"**{len(filtered)}** utilisateur(s) trouvé(s)")
+    st.markdown(f"""
+    <div style="
+        padding:10px 14px; margin:10px 0;
+        background:linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%);
+        border-left:4px solid {GREEN};
+        border-radius:10px;
+        color:{GREEN_D}; font-weight:600;
+    ">
+        📊 {len(filtered)} utilisateur(s) trouvé(s) sur {len(users)}
+    </div>
+    """, unsafe_allow_html=True)
 
-    # Tableau
-    df = pd.DataFrame([{
-        "UID":         u["_id"][:12]+"...",
-        "Prénom":      u.get("prenom",""),
-        "Nom":         u.get("nom",""),
-        "Email":       u.get("email",""),
-        "Téléphone":   u.get("telephone",""),
-        "Rôle":        u.get("role","user"),
-        "KYC":         u.get("kycStatut","non_soumis"),
-        "Note":        u.get("note",""),
-        "Évals":       u.get("nombreEvaluations",0),
-    } for u in filtered])
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    if view_mode == "🃏 Cartes":
+        # Vue en cartes — 3 colonnes
+        for i in range(0, len(filtered), 3):
+            cols = st.columns(3)
+            for j, col in enumerate(cols):
+                idx = i + j
+                if idx >= len(filtered):
+                    break
+                u = filtered[idx]
+                with col:
+                    nom = f"{u.get('prenom','')} {u.get('nom','')}".strip() or "Sans nom"
+                    initial = nom[0].upper() if nom != "Sans nom" else "?"
+                    kyc_st = u.get('kycStatut','non_soumis')
+                    kyc_colors = {
+                        "approuve": ("#D1FAE5", "#065F46", "✅"),
+                        "en_verification": ("#FEF3C7", "#92400E", "🟡"),
+                        "rejete": ("#FEE2E2", "#991B1B", "🔴"),
+                        "non_soumis": ("#F3F4F6", "#6B7280", "⚪"),
+                    }
+                    bg, color, icon = kyc_colors.get(kyc_st, kyc_colors["non_soumis"])
+                    note = u.get('note', 0) or 0
+                    st.markdown(f"""
+                    <div style="
+                        background:white;
+                        border:1px solid #E5E7EB;
+                        border-radius:14px;
+                        padding:16px;
+                        margin-bottom:12px;
+                        box-shadow:0 1px 3px rgba(0,0,0,0.04);
+                        transition:all 0.2s ease;
+                    ">
+                        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                            <div style="
+                                width:48px; height:48px;
+                                background:linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
+                                border-radius:14px;
+                                display:flex; align-items:center; justify-content:center;
+                                color:white; font-weight:800; font-size:1.2rem;
+                            ">{initial}</div>
+                            <div style="flex:1; min-width:0">
+                                <div style="font-weight:700;color:#1F2937;font-size:0.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{nom}</div>
+                                <div style="font-size:0.75rem;color:#6B7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{u.get('email','—')}</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+                            <span style="background:{bg};color:{color};padding:3px 8px;border-radius:99px;font-size:0.7rem;font-weight:700">{icon} {kyc_st}</span>
+                            <span style="background:#EFF6FF;color:#1E40AF;padding:3px 8px;border-radius:99px;font-size:0.7rem;font-weight:700">{u.get('role','user')}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:#6B7280;padding-top:8px;border-top:1px solid #F3F4F6">
+                            <span>⭐ {note}/5 ({u.get('nombreEvaluations',0)})</span>
+                            <span>📞 {u.get('telephone','—')[:12] if u.get('telephone') else '—'}</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+    else:
+        # Tableau (vue classique améliorée)
+        df = pd.DataFrame([{
+            "UID":         u["_id"][:12]+"...",
+            "Prénom":      u.get("prenom",""),
+            "Nom":         u.get("nom",""),
+            "Email":       u.get("email",""),
+            "Téléphone":   u.get("telephone",""),
+            "Rôle":        u.get("role","user"),
+            "KYC":         u.get("kycStatut","non_soumis"),
+            "Note":        u.get("note",""),
+            "Évals":       u.get("nombreEvaluations",0),
+        } for u in filtered])
+        st.dataframe(df, use_container_width=True, hide_index=True, height=400)
 
     # Détail utilisateur
     st.markdown("---")
@@ -941,8 +1305,22 @@ def tab_users():
 
 # ─── 3. KYC ───────────────────────────────────────────────────────────────────
 def tab_kyc():
-    st.markdown('<div class="section-title">🆔 KYC — Vérification d\'identité</div>',
-                unsafe_allow_html=True)
+    # Header hero
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #EF9F27 0%, #D97706 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(239, 159, 39, 0.25);
+        margin-bottom: 20px;
+        position: relative; overflow: hidden;
+    ">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">🆔 Vérification d'identité (KYC)</h2>
+        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Examiner les documents, comparer photo profil ↔ CIN, approuver ou rejeter</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.spinner("Chargement depuis Firestore..."):
         users = fs_get("users", _token())
@@ -952,12 +1330,22 @@ def tab_kyc():
                  if u.get("kycStatut") in ("en_verification","approuve","rejete")
                  or u.get("cinRectoUrl") or u.get("cinVersoUrl")]
 
-    # Métriques
+    # Métriques avec progression
+    total = len(kyc_users)
+    pending = sum(1 for u in kyc_users if u.get("kycStatut")=="en_verification")
+    approuve = sum(1 for u in kyc_users if u.get("kycStatut")=="approuve")
+    rejete = sum(1 for u in kyc_users if u.get("kycStatut")=="rejete")
+    taux_approbation = (approuve / max(1, approuve + rejete)) * 100
+
     m1,m2,m3,m4 = st.columns(4)
-    m1.metric("Total dossiers",  len(kyc_users))
-    m2.metric("🟡 En attente",  sum(1 for u in kyc_users if u.get("kycStatut")=="en_verification"))
-    m3.metric("🟢 Approuvés",   sum(1 for u in kyc_users if u.get("kycStatut")=="approuve"))
-    m4.metric("🔴 Rejetés",     sum(1 for u in kyc_users if u.get("kycStatut")=="rejete"))
+    m1.metric("📁 Total dossiers", total)
+    m2.metric("🟡 En attente", pending,
+              delta="action requise" if pending > 0 else None,
+              delta_color="inverse" if pending > 0 else "off")
+    m3.metric("🟢 Approuvés", approuve,
+              delta=f"{taux_approbation:.0f}% d'approbation",
+              delta_color="normal")
+    m4.metric("🔴 Rejetés", rejete)
 
     st.markdown("---")
 
@@ -1098,8 +1486,22 @@ def tab_kyc():
 
 # ─── 4. Demandes ─────────────────────────────────────────────────────────────
 def tab_demandes():
-    st.markdown('<div class="section-title">📦 Gestion des Demandes</div>',
-                unsafe_allow_html=True)
+    # Header hero
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(139, 92, 246, 0.25);
+        margin-bottom: 20px;
+        position: relative; overflow: hidden;
+    ">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">📦 Gestion des demandes</h2>
+        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Suivre, modifier et résoudre toutes les demandes d'envoi</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.spinner("Chargement..."):
         demandes = fs_get("demandes", _token())
@@ -1118,11 +1520,11 @@ def tab_demandes():
             ca += float(d.get("prixPropose",0))
 
     c1,c2,c3,c4,c5 = st.columns(5)
-    c1.metric("Total",         len(demandes))
-    c2.metric("En attente",    statuts_count.get("en_attente",0))
-    c3.metric("En cours",      statuts_count.get("en_cours",0))
-    c4.metric("Livrées",       statuts_count.get("livree",0))
-    c5.metric("CA encaissé",   f"{ca:,.0f} MAD")
+    c1.metric("📦 Total", len(demandes))
+    c2.metric("🟡 En attente", statuts_count.get("en_attente",0))
+    c3.metric("🔵 En cours", statuts_count.get("en_cours",0))
+    c4.metric("🟢 Livrées", statuts_count.get("livree",0))
+    c5.metric("💰 CA encaissé", f"{ca:,.0f} MAD")
 
     st.markdown("---")
 
@@ -1184,7 +1586,22 @@ def tab_demandes():
 
 # ─── 5. Trajets ───────────────────────────────────────────────────────────────
 def tab_trajets():
-    st.markdown('<div class="section-title">🛣️ Trajets publiés</div>', unsafe_allow_html=True)
+    # Header hero
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #14B8A6 0%, #0F766E 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(20, 184, 166, 0.25);
+        margin-bottom: 20px;
+        position: relative; overflow: hidden;
+    ">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">🛣️ Trajets publiés</h2>
+        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Tous les trajets disponibles, en cours et expirés</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.spinner("Chargement..."):
         trajets = fs_get("trajets", _token())
@@ -1193,7 +1610,15 @@ def tab_trajets():
         st.info("Aucun trajet.")
         return
 
-    st.metric("Total trajets", len(trajets))
+    # Métriques avancées
+    nb_dispo = sum(1 for t in trajets if t.get("statut") == "disponible")
+    nb_en_cours = sum(1 for t in trajets if t.get("statut") == "en_cours")
+    nb_termine = sum(1 for t in trajets if t.get("statut") == "termine")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("🛣️ Total", len(trajets))
+    c2.metric("🟢 Disponibles", nb_dispo)
+    c3.metric("🔵 En cours", nb_en_cours)
+    c4.metric("⚫ Terminés", nb_termine)
     st.markdown("---")
 
     df = pd.DataFrame([{
@@ -1227,8 +1652,22 @@ def tab_trajets():
 
 # ─── 6. Litiges ───────────────────────────────────────────────────────────────
 def tab_litiges():
-    st.markdown('<div class="section-title">⚠️ Litiges & Réclamations</div>',
-                unsafe_allow_html=True)
+    # Header hero
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #E24B4A 0%, #B91C1C 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(226, 75, 74, 0.25);
+        margin-bottom: 20px;
+        position: relative; overflow: hidden;
+    ">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">⚠️ Litiges & Réclamations</h2>
+        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Résolution des conflits et médiation entre utilisateurs</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.spinner("Chargement..."):
         demandes = fs_get("demandes",      _token())
@@ -1236,7 +1675,14 @@ def tab_litiges():
 
     litiges = [d for d in demandes if "litige" in d.get("statut","")]
 
-    st.subheader(f"Demandes en litige ({len(litiges)})")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("🚨 Litiges actifs", len(litiges))
+    c2.metric("📩 Réclamations", len(reclams))
+    c3.metric("✅ Résolus (livrées)",
+              sum(1 for d in demandes if d.get("statut") == "livree"))
+    st.markdown("---")
+
+    st.subheader(f"🚨 Demandes en litige ({len(litiges)})")
     if litiges:
         df = pd.DataFrame([{
             "ID":         d["_id"][:8],
@@ -1276,7 +1722,22 @@ def tab_litiges():
 
 # ─── 7. Notifications ─────────────────────────────────────────────────────────
 def tab_notifications():
-    st.markdown('<div class="section-title">🔔 Notifications</div>', unsafe_allow_html=True)
+    # Header hero
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(245, 158, 11, 0.25);
+        margin-bottom: 20px;
+        position: relative; overflow: hidden;
+    ">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">🔔 Notifications</h2>
+        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Envoyer des messages ciblés ou en masse aux utilisateurs</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.spinner("Chargement..."):
         users = fs_get("users", _token())
@@ -1330,8 +1791,22 @@ _DISTANCES = {
 }
 
 def tab_tarification():
-    st.markdown('<div class="section-title">💰 Simulateur de tarification</div>',
-                unsafe_allow_html=True)
+    # Header hero
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 22px 28px;
+        border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.25);
+        margin-bottom: 20px;
+        position: relative; overflow: hidden;
+    ">
+        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
+        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">💰 Simulateur de tarification</h2>
+        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Calculer le prix suggéré selon poids, distance et options</p>
+    </div>
+    """, unsafe_allow_html=True)
     villes = ["Casablanca","Rabat","Marrakech","Fès","Tanger","Agadir","Meknès","Oujda"]
     col1, col2 = st.columns(2)
     with col1:
