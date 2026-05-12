@@ -47,7 +47,7 @@ FACEPP_SECRET = _secret("FACEPP_API_SECRET")
 FACE_MATCH_THRESHOLD = 70.0  # Score minimum pour considérer comme match (0-100)
 
 # ─── Couleurs ─────────────────────────────────────────────────────────────────
-GREEN   = "#1D9E75"
+GREEN   = "#0E9268"
 GREEN_D = "#0F6E56"
 AMBER   = "#EF9F27"
 RED     = "#E24B4A"
@@ -59,23 +59,249 @@ st.set_page_config(page_title="Swiftli Admin", page_icon="📦", layout="wide",
 
 st.markdown(f"""
 <style>
+  /* ─── Global page styling ───────────────────────────────── */
+  .stApp {{
+      background: linear-gradient(180deg, #F0FDF4 0%, #F9FAFB 200px, #F9FAFB 100%);
+  }}
+
+  /* Hide Streamlit branding for a cleaner look */
+  #MainMenu {{ visibility: hidden; }}
+  footer {{ visibility: hidden; }}
+  .stDeployButton {{ display: none; }}
+
+  /* ─── Sidebar premium ────────────────────────────────────── */
   [data-testid="stSidebar"] {{
-      background: linear-gradient(160deg, {GREEN_D} 0%, #062e1e 100%);
+      background: linear-gradient(165deg, {GREEN_D} 0%, #062e1e 100%);
+      box-shadow: 4px 0 24px rgba(15, 110, 86, 0.15);
   }}
   [data-testid="stSidebar"] * {{ color: white !important; }}
+  [data-testid="stSidebar"] [data-testid="stRadio"] label {{
+      padding: 10px 14px;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      margin: 2px 0;
+  }}
+  [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {{
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(4px);
+  }}
+  [data-testid="stSidebar"] hr {{
+      border-color: rgba(255, 255, 255, 0.15);
+      margin: 16px 0;
+  }}
+
+  /* ─── KPI Metric cards premium ───────────────────────────── */
   [data-testid="metric-container"] {{
-      background: white; border: 1px solid #E5E7EB;
-      border-radius: 14px; padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(15, 110, 86, 0.06);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
   }}
+  [data-testid="metric-container"]:hover {{
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(15, 110, 86, 0.12);
+      border-color: {GREEN};
+  }}
+  [data-testid="metric-container"]::before {{
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, {GREEN}, {GREEN_D});
+  }}
+  [data-testid="stMetricValue"] {{
+      font-size: 2rem !important;
+      font-weight: 800 !important;
+      color: {GREEN_D} !important;
+  }}
+  [data-testid="stMetricLabel"] {{
+      font-size: 0.85rem !important;
+      color: #6B7280 !important;
+      font-weight: 600 !important;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+  }}
+
+  /* ─── Section titles premium ─────────────────────────────── */
   .section-title {{
-      font-size: 1.15rem; font-weight: 700; color: {GREEN_D};
-      margin-bottom: 1rem; padding-bottom: 6px;
-      border-bottom: 2px solid {GREEN};
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: {GREEN_D};
+      margin-bottom: 1.2rem;
+      padding-bottom: 10px;
+      border-bottom: 3px solid {GREEN};
+      display: inline-block;
+      position: relative;
   }}
-  .badge-pending  {{ background:#FEF3C7; color:#92400E; padding:2px 10px; border-radius:99px; font-size:.8rem; }}
-  .badge-approved {{ background:#D1FAE5; color:#065F46; padding:2px 10px; border-radius:99px; font-size:.8rem; }}
-  .badge-rejected {{ background:#FEE2E2; color:#991B1B; padding:2px 10px; border-radius:99px; font-size:.8rem; }}
+  .section-title::after {{
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      width: 30%;
+      height: 3px;
+      background: {AMBER};
+      border-radius: 2px;
+  }}
+
+  /* ─── Badges modernes ────────────────────────────────────── */
+  .badge-pending {{
+      background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+      color: #92400E;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(146, 64, 14, 0.1);
+  }}
+  .badge-approved {{
+      background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+      color: #065F46;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(6, 95, 70, 0.1);
+  }}
+  .badge-rejected {{
+      background: linear-gradient(135deg, #FEE2E2 0%, #FCA5A5 100%);
+      color: #991B1B;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(153, 27, 27, 0.1);
+  }}
+
+  /* ─── Boutons stylés ──────────────────────────────────────── */
+  .stButton > button {{
+      border-radius: 10px;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+  }}
+  .stButton > button:hover {{
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(15, 110, 86, 0.15);
+  }}
+  .stButton > button[kind="primary"] {{
+      background: linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
+      color: white;
+      border: none;
+  }}
+
+  /* ─── Expander modernisé ──────────────────────────────────── */
+  [data-testid="stExpander"] {{
+      border: 1px solid #E5E7EB;
+      border-radius: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: all 0.2s ease;
+  }}
+  [data-testid="stExpander"]:hover {{
+      box-shadow: 0 4px 12px rgba(15, 110, 86, 0.08);
+      border-color: {GREEN};
+  }}
+
+  /* ─── Inputs ──────────────────────────────────────────────── */
+  .stTextInput input, .stSelectbox select, .stTextArea textarea {{
+      border-radius: 10px !important;
+      border: 1.5px solid #E5E7EB !important;
+      transition: all 0.2s ease;
+  }}
+  .stTextInput input:focus, .stSelectbox select:focus, .stTextArea textarea:focus {{
+      border-color: {GREEN} !important;
+      box-shadow: 0 0 0 3px rgba(15, 110, 86, 0.1) !important;
+  }}
+
+  /* ─── DataFrames ─────────────────────────────────────────── */
+  [data-testid="stDataFrame"] {{
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid #E5E7EB;
+  }}
+
+  /* ─── Alerts / Info boxes ────────────────────────────────── */
+  .stAlert {{
+      border-radius: 12px;
+      border-left-width: 4px;
+  }}
+
+  /* ─── Tabs ───────────────────────────────────────────────── */
+  .stTabs [data-baseweb="tab-list"] {{
+      gap: 8px;
+      background: white;
+      padding: 6px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }}
+  .stTabs [data-baseweb="tab"] {{
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-weight: 600;
+  }}
+  .stTabs [aria-selected="true"] {{
+      background: linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
+      color: white !important;
+  }}
+
+  /* ─── Custom photo cards for KYC ─────────────────────────── */
+  .kyc-photo-card {{
+      background: white;
+      border: 2px solid #E5E7EB;
+      border-radius: 14px;
+      padding: 8px;
+      transition: all 0.2s ease;
+      cursor: zoom-in;
+  }}
+  .kyc-photo-card:hover {{
+      border-color: {GREEN};
+      transform: scale(1.02);
+      box-shadow: 0 8px 24px rgba(15, 110, 86, 0.15);
+  }}
+
+  /* ─── User card style ────────────────────────────────────── */
+  .user-card {{
+      background: white;
+      border: 1px solid #E5E7EB;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      transition: all 0.2s ease;
+  }}
+  .user-card:hover {{
+      box-shadow: 0 4px 12px rgba(15, 110, 86, 0.08);
+      border-color: {GREEN};
+  }}
+
+  /* ─── Stat hero ──────────────────────────────────────────── */
+  .stat-hero {{
+      background: linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
+      color: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(15, 110, 86, 0.2);
+      margin-bottom: 20px;
+  }}
+  .stat-hero h2 {{
+      color: white;
+      font-size: 2rem;
+      margin: 0;
+      font-weight: 800;
+  }}
+  .stat-hero p {{
+      color: rgba(255,255,255,0.9);
+      margin: 4px 0 0 0;
+      font-size: 0.95rem;
+  }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -188,24 +414,60 @@ def _signed_url(public_url: str) -> str:
 
 def _photo(url: str | None, label: str):
     """Affiche une photo KYC — utilise URL signée pour garantir l'accès."""
-    st.caption(f"**{label}**")
+    # Label avec style amélioré
+    st.markdown(f"""
+    <div style="
+        font-weight: 700;
+        color: {GREEN_D};
+        font-size: 0.85rem;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    ">{label}</div>
+    """, unsafe_allow_html=True)
+
     if not url:
         st.markdown(
-            "<div style='background:#F3F4F6;border-radius:8px;height:140px;"
-            "display:flex;align-items:center;justify-content:center;"
-            "color:#9CA3AF;font-size:13px'>Non fourni</div>",
+            """<div style='
+                background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+                border: 2px dashed #D1D5DB;
+                border-radius: 14px;
+                height: 180px;
+                display: flex; flex-direction: column;
+                align-items: center; justify-content: center;
+                color: #9CA3AF;
+                font-size: 13px;
+                font-weight: 600;
+            '>
+                <div style='font-size: 2rem; margin-bottom: 8px; opacity: 0.5;'>📷</div>
+                Non fourni
+            </div>""",
             unsafe_allow_html=True)
         return
 
     display_url = _signed_url(url)
     try:
+        # Container avec style premium pour la photo
+        st.markdown('<div class="kyc-photo-card">', unsafe_allow_html=True)
         st.image(display_url, use_container_width=True)
-        st.markdown(f"<a href='{display_url}' target='_blank' "
-                    "style='font-size:11px;color:#6B7280'>"
-                    "🔗 Ouvrir en plein écran</a>",
-                    unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown(f"""
+        <a href='{display_url}' target='_blank' style='
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 10px;
+            background: #F0FDF4;
+            color: {GREEN_D};
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid #D1FAE5;
+            transition: all 0.2s ease;
+        '>🔍 Plein écran</a>
+        """, unsafe_allow_html=True)
     except Exception as e:
-        st.error(f"⚠️ Photo inaccessible")
+        st.error("⚠️ Photo inaccessible")
         st.markdown(f"[Voir le fichier directement]({display_url})")
         st.caption(f"_{str(e)[:80]}_")
 
@@ -262,15 +524,44 @@ def login_page():
     c1, c2, c3 = st.columns([1, 2, 1])
     with c2:
         st.markdown(f"""
-        <div style="text-align:center;padding:32px 0 16px">
-            <div style="font-size:3rem">📦</div>
-            <h1 style="color:{GREEN_D};margin:0">Swiftli Admin</h1>
-            <p style="color:#6B7280">Connectez-vous avec votre compte Firebase</p>
+        <div style="text-align:center;padding:60px 0 24px">
+            <div style="
+                width: 90px; height: 90px;
+                margin: 0 auto 24px;
+                background: linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
+                border-radius: 24px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 3.5rem;
+                box-shadow: 0 12px 30px rgba(15, 110, 86, 0.3);
+            ">📦</div>
+            <h1 style="
+                color: {GREEN_D};
+                margin: 0;
+                font-size: 2.5rem;
+                font-weight: 900;
+                letter-spacing: -1px;
+            ">Swiftli Admin</h1>
+            <p style="
+                color: #6B7280;
+                margin-top: 8px;
+                font-size: 1rem;
+            ">Tableau de bord administrateur — Sécurisé</p>
+            <div style="
+                display: inline-block;
+                margin-top: 12px;
+                padding: 4px 12px;
+                background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+                color: #065F46;
+                border-radius: 99px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+            ">🔒 ACCÈS RESTREINT</div>
         </div>""", unsafe_allow_html=True)
         with st.form("login"):
             email    = st.text_input("📧 Email", placeholder="votre@email.com")
             password = st.text_input("🔑 Mot de passe", type="password")
-            ok       = st.form_submit_button("Se connecter", use_container_width=True)
+            ok       = st.form_submit_button("Se connecter", use_container_width=True, type="primary")
         if ok:
             if not email or not password:
                 st.warning("Remplissez email et mot de passe.")
@@ -326,12 +617,46 @@ def login_page():
 # ─── Sidebar ──────────────────────────────────────────────────────────────────
 def sidebar() -> str:
     with st.sidebar:
+        user_email = st.session_state.get("user_email", "")
+        initial = user_email[0].upper() if user_email else "A"
         st.markdown(f"""
-        <div style="text-align:center;padding:20px 0 10px">
-            <div style="font-size:2.5rem">📦</div>
-            <h2 style="margin:4px 0;font-weight:800">Swiftli</h2>
-            <small>Admin Dashboard v2.0</small><br>
-            <small style="opacity:.7">{st.session_state.get("user_email","")}</small>
+        <div style="text-align:center;padding:24px 0 16px">
+            <div style="
+                width: 70px; height: 70px;
+                margin: 0 auto 12px;
+                background: linear-gradient(135deg, #fff 0%, #D1FAE5 100%);
+                border-radius: 18px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 2.2rem;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            ">📦</div>
+            <h2 style="margin:6px 0 2px;font-weight:900;font-size:1.4rem;letter-spacing:-0.5px">Swiftli</h2>
+            <div style="
+                display: inline-block;
+                padding: 2px 10px;
+                background: rgba(255,255,255,0.15);
+                border-radius: 99px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                margin-bottom: 12px;
+            ">ADMIN DASHBOARD</div>
+            <div style="
+                display: flex; align-items: center; justify-content: center;
+                gap: 8px; padding: 8px;
+                background: rgba(0,0,0,0.15);
+                border-radius: 10px;
+                margin-top: 8px;
+            ">
+                <div style="
+                    width: 28px; height: 28px;
+                    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                    border-radius: 50%;
+                    display: flex; align-items: center; justify-content: center;
+                    color: white; font-weight: 800; font-size: 0.85rem;
+                ">{initial}</div>
+                <small style="opacity:.85;font-size:0.75rem">{user_email}</small>
+            </div>
         </div>""", unsafe_allow_html=True)
         st.markdown("---")
         page = st.radio("Navigation", [
@@ -345,6 +670,11 @@ def sidebar() -> str:
             "💰 Tarification",
         ], label_visibility="collapsed")
         st.markdown("---")
+        st.markdown(f"""
+        <div style="font-size:0.7rem;opacity:0.6;text-align:center;margin-bottom:8px">
+            v2.1 • Mai 2026
+        </div>
+        """, unsafe_allow_html=True)
         if st.button("🚪 Déconnexion", use_container_width=True):
             for k in ["id_token", "local_id", "user_email"]:
                 st.session_state.pop(k, None)
@@ -354,8 +684,37 @@ def sidebar() -> str:
 
 # ─── 1. Tableau de bord ───────────────────────────────────────────────────────
 def tab_dashboard():
-    st.markdown('<div class="section-title">📊 Vue d\'ensemble en temps réel</div>',
-                unsafe_allow_html=True)
+    # Hero section
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
+        color: white;
+        padding: 28px 32px;
+        border-radius: 18px;
+        box-shadow: 0 12px 30px rgba(15, 110, 86, 0.25);
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    ">
+        <div style="
+            position: absolute; top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+        "></div>
+        <div style="position: relative; z-index: 1;">
+            <div style="font-size: 0.85rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
+                Bonjour 👋
+            </div>
+            <h1 style="margin: 4px 0 6px; color: white; font-size: 2rem; font-weight: 800;">
+                Tableau de bord Swiftli
+            </h1>
+            <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">
+                Vue d'ensemble en temps réel · {datetime.now().strftime("%d %B %Y · %H:%M")}
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     with st.spinner("Chargement des données..."):
         users    = fs_get("users",    _token())
@@ -367,15 +726,31 @@ def tab_dashboard():
     ca = sum(float(d.get("prixPropose", 0)) for d in demandes
              if d.get("paiementStatut") == "payé")
     kyc_pending = sum(1 for u in users if u.get("kycStatut") == "en_verification")
+    kyc_approuve = sum(1 for u in users if u.get("kycStatut") == "approuve")
     livrees = sum(1 for d in demandes if d.get("statut") == "livree")
 
-    c1,c2,c3,c4,c5,c6 = st.columns(6)
-    c1.metric("👥 Utilisateurs",   len(users))
-    c2.metric("📦 Demandes",       len(demandes))
-    c3.metric("🛣️ Trajets",        len(trajets))
-    c4.metric("💰 CA (MAD)",       f"{ca:,.0f}")
-    c5.metric("🆔 KYC en attente", kyc_pending)
-    c6.metric("⚠️ Réclamations",   len(reclams))
+    # Première rangée de KPIs : indicateurs principaux
+    c1,c2,c3,c4 = st.columns(4)
+    c1.metric("👥 Utilisateurs", len(users),
+              delta=f"{kyc_approuve} vérifiés", delta_color="normal")
+    c2.metric("📦 Demandes", len(demandes),
+              delta=f"{livrees} livrées", delta_color="normal")
+    c3.metric("🛣️ Trajets actifs", sum(1 for t in trajets if t.get("statut") == "disponible"))
+    c4.metric("💰 Chiffre d'affaires", f"{ca:,.0f} MAD")
+
+    # Deuxième rangée : alertes opérationnelles
+    c5, c6, c7, c8 = st.columns(4)
+    c5.metric("🆔 KYC en attente", kyc_pending,
+              delta="action requise" if kyc_pending > 0 else "à jour",
+              delta_color="inverse" if kyc_pending > 0 else "off")
+    c6.metric("⚠️ Réclamations", len(reclams),
+              delta="à traiter" if len(reclams) > 0 else "aucune",
+              delta_color="inverse" if len(reclams) > 0 else "off")
+    c7.metric("🚦 Litiges actifs",
+              sum(1 for d in demandes if "litige" in d.get("statut", "")))
+    c8.metric("📱 Trajets publiés aujourd'hui",
+              sum(1 for t in trajets
+                  if (t.get("createdAt") or "").startswith(datetime.now().strftime("%Y-%m-%d"))))
 
     st.markdown("---")
     col_g1, col_g2, col_g3 = st.columns(3)
