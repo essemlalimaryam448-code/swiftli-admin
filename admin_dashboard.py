@@ -61,7 +61,28 @@ st.markdown(f"""
 <style>
   /* ─── Global page styling ───────────────────────────────── */
   .stApp {{
-      background: linear-gradient(180deg, #F0FDF4 0%, #F9FAFB 200px, #F9FAFB 100%);
+      background: #FFFFFF;
+  }}
+
+  /* Force text colors visible on white background */
+  .stApp, .stApp p, .stApp span, .stApp div, .stApp label {{
+      color: #111827 !important;
+  }}
+
+  /* Force headers dark */
+  .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {{
+      color: #0F6E56 !important;
+      font-weight: 800 !important;
+  }}
+
+  /* Subheader text */
+  .stApp [data-testid="stMarkdownContainer"] p {{
+      color: #1F2937 !important;
+  }}
+
+  /* Caption / small text */
+  .stApp small {{
+      color: #4B5563 !important;
   }}
 
   /* Hide Streamlit branding for a cleaner look */
@@ -92,7 +113,7 @@ st.markdown(f"""
 
   /* ─── KPI Metric cards premium ───────────────────────────── */
   [data-testid="metric-container"] {{
-      background: white;
+      background: white !important;
       border: 1px solid #E5E7EB;
       border-radius: 16px;
       padding: 20px;
@@ -114,17 +135,42 @@ st.markdown(f"""
       height: 100%;
       background: linear-gradient(180deg, {GREEN}, {GREEN_D});
   }}
-  [data-testid="stMetricValue"] {{
+  [data-testid="stMetricValue"], [data-testid="stMetricValue"] div {{
       font-size: 2rem !important;
       font-weight: 800 !important;
       color: {GREEN_D} !important;
   }}
-  [data-testid="stMetricLabel"] {{
+  [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] div, [data-testid="stMetricLabel"] p {{
       font-size: 0.85rem !important;
-      color: #6B7280 !important;
-      font-weight: 600 !important;
+      color: #374151 !important;
+      font-weight: 700 !important;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+  }}
+  [data-testid="stMetricDelta"] {{
+      color: #059669 !important;
+      font-weight: 700 !important;
+  }}
+
+  /* Hero cards : forcer le texte BLANC */
+  div[style*="linear-gradient"] h1,
+  div[style*="linear-gradient"] h2,
+  div[style*="linear-gradient"] h3,
+  div[style*="linear-gradient"] p,
+  div[style*="linear-gradient"] span {{
+      color: white !important;
+  }}
+
+  /* Sidebar : forcer texte blanc partout */
+  [data-testid="stSidebar"] *,
+  [data-testid="stSidebar"] h1,
+  [data-testid="stSidebar"] h2,
+  [data-testid="stSidebar"] h3,
+  [data-testid="stSidebar"] p,
+  [data-testid="stSidebar"] span,
+  [data-testid="stSidebar"] div,
+  [data-testid="stSidebar"] label {{
+      color: white !important;
   }}
 
   /* ─── Section titles premium ─────────────────────────────── */
@@ -215,10 +261,42 @@ st.markdown(f"""
       border-radius: 10px !important;
       border: 1.5px solid #E5E7EB !important;
       transition: all 0.2s ease;
+      color: #111827 !important;
+      background: white !important;
   }}
   .stTextInput input:focus, .stSelectbox select:focus, .stTextArea textarea:focus {{
       border-color: {GREEN} !important;
       box-shadow: 0 0 0 3px rgba(15, 110, 86, 0.1) !important;
+  }}
+
+  /* Selectbox dropdown */
+  [data-baseweb="select"] > div {{
+      background: white !important;
+      color: #111827 !important;
+  }}
+  [data-baseweb="select"] * {{ color: #111827 !important; }}
+  [data-baseweb="popover"] li {{ color: #111827 !important; }}
+
+  /* Number input */
+  .stNumberInput input {{
+      color: #111827 !important;
+      background: white !important;
+  }}
+
+  /* Labels au-dessus des inputs */
+  .stTextInput label, .stSelectbox label, .stTextArea label,
+  .stNumberInput label, .stRadio label, .stCheckbox label,
+  .stFileUploader label {{
+      color: #374151 !important;
+      font-weight: 600 !important;
+  }}
+
+  /* Sidebar inputs : texte blanc */
+  [data-testid="stSidebar"] .stTextInput input,
+  [data-testid="stSidebar"] .stSelectbox select {{
+      color: white !important;
+      background: rgba(255,255,255,0.1) !important;
+      border-color: rgba(255,255,255,0.2) !important;
   }}
 
   /* ─── DataFrames ─────────────────────────────────────────── */
