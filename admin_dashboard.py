@@ -163,16 +163,27 @@ st.markdown(f"""
       color: white !important;
   }}
 
-  /* Sidebar : forcer texte blanc partout */
-  [data-testid="stSidebar"] *,
-  [data-testid="stSidebar"] h1,
-  [data-testid="stSidebar"] h2,
-  [data-testid="stSidebar"] h3,
-  [data-testid="stSidebar"] p,
-  [data-testid="stSidebar"] span,
-  [data-testid="stSidebar"] div,
-  [data-testid="stSidebar"] label {{
-      color: white !important;
+  /* Sidebar : forcer texte BLANC partout (priorité max) */
+  section[data-testid="stSidebar"] *,
+  section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] *,
+  section[data-testid="stSidebar"] [role="radiogroup"] label,
+  section[data-testid="stSidebar"] [role="radiogroup"] label *,
+  section[data-testid="stSidebar"] [data-baseweb="radio"] *,
+  section[data-testid="stSidebar"] [data-testid="stRadio"] * {{
+      color: #FFFFFF !important;
+      font-weight: 600 !important;
+  }}
+  section[data-testid="stSidebar"] [role="radiogroup"] label {{
+      font-size: 0.95rem !important;
+      padding: 12px 14px !important;
+      border-radius: 10px !important;
+      margin: 3px 0 !important;
+  }}
+  section[data-testid="stSidebar"] [role="radiogroup"] label:hover {{
+      background: rgba(255,255,255,0.18) !important;
+  }}
+  section[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {{
+      background: rgba(255,255,255,0.22) !important;
   }}
 
   /* ─── Section titles premium ─────────────────────────────── */
