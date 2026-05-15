@@ -99,10 +99,10 @@ def page_header(icon: str, eyebrow: str, title: str, subtitle: str,
         )
 
     html = (
-        f"<div style=\"background:linear-gradient(120deg,{grad_from} 0%,"
-        f"{grad_to} 100%);border-radius:20px;padding:26px 32px;"
-        "margin-bottom:22px;position:relative;overflow:hidden;"
-        "box-shadow:0 14px 34px rgba(62,39,35,0.28)\">"
+        f"<div class=\"page-hero\" style=\"background:linear-gradient(120deg,"
+        f"{grad_from} 0%,{grad_to} 100%);border-radius:20px;"
+        "padding:26px 32px;margin-bottom:22px;position:relative;"
+        "overflow:hidden;box-shadow:0 14px 34px rgba(62,39,35,0.28)\">"
         # liseré accent doré en haut
         "<div style=\"position:absolute;top:0;left:0;right:0;height:4px;"
         "background:linear-gradient(90deg,#C8860D 0%,#E0B873 50%,"
@@ -119,21 +119,16 @@ def page_header(icon: str, eyebrow: str, title: str, subtitle: str,
         "justify-content:space-between;gap:20px;position:relative;"
         "z-index:2;flex-wrap:wrap\">"
         "<div style=\"display:flex;align-items:center;gap:18px\">"
-        "<div style=\"width:62px;height:62px;flex-shrink:0;"
-        "background:rgba(255,255,255,0.15);"
+        "<div class=\"ph-icon\" style=\"width:62px;height:62px;"
+        "flex-shrink:0;background:rgba(255,255,255,0.15);"
         "border:1px solid rgba(255,255,255,0.25);border-radius:18px;"
         "display:flex;align-items:center;justify-content:center;"
-        "font-size:2rem;box-shadow:0 8px 20px rgba(0,0,0,0.18)\">"
+        "box-shadow:0 8px 20px rgba(0,0,0,0.18)\">"
         f"{icon}</div>"
         "<div>"
-        "<div style=\"font-size:0.72rem;font-weight:700;letter-spacing:2px;"
-        "text-transform:uppercase;color:rgba(255,255,255,0.65)\">"
-        f"{eyebrow}</div>"
-        "<h1 style=\"margin:4px 0 5px;color:#FFFFFF;font-size:1.85rem;"
-        "font-weight:800;letter-spacing:-0.4px;line-height:1.1\">"
-        f"{title}</h1>"
-        "<p style=\"margin:0;color:rgba(255,255,255,0.78);"
-        f"font-size:0.9rem\">{subtitle}</p>"
+        f"<div class=\"ph-eyebrow\">{eyebrow}</div>"
+        f"<h1>{title}</h1>"
+        f"<p class=\"ph-sub\">{subtitle}</p>"
         "</div></div>"
         f"{pills_html}"
         "</div></div>"
@@ -275,6 +270,33 @@ st.markdown(f"""
   div[style*="linear-gradient"] p,
   div[style*="linear-gradient"] span {{
       color: white !important;
+  }}
+
+  /* En-tête de page : TOUT le texte en blanc (priorité maximale) */
+  .page-hero, .page-hero * {{
+      color: #FFFFFF !important;
+  }}
+  .page-hero h1 {{
+      color: #FFFFFF !important;
+      font-size: 1.85rem !important;
+      font-weight: 800 !important;
+      margin: 4px 0 5px !important;
+  }}
+  .page-hero .ph-eyebrow {{
+      color: rgba(255,255,255,0.70) !important;
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+      letter-spacing: 2px !important;
+      text-transform: uppercase !important;
+  }}
+  .page-hero .ph-sub {{
+      color: rgba(255,255,255,0.82) !important;
+      font-size: 0.9rem !important;
+      margin: 0 !important;
+  }}
+  .page-hero .ph-icon {{
+      font-size: 2rem !important;
+      filter: none !important;
   }}
 
   /* Sidebar : forcer texte BLANC partout (priorité max) */
