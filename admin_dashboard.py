@@ -1043,7 +1043,7 @@ def tab_dashboard():
     st.markdown("---")
     col_g1, col_g2, col_g3 = st.columns(3)
 
-    # Demandes par statut — DONUT animé avec total au centre
+    # Demandes par statut — DONUT épuré + légende pro
     with col_g1:
         st.subheader("📦 Demandes par statut")
         statuts: dict[str, int] = {}
@@ -1052,63 +1052,59 @@ def tab_dashboard():
             statuts[s] = statuts.get(s, 0) + 1
         if statuts:
             labels_fr = {
-                "en_attente":"En attente","acceptée":"Acceptée",
-                "en_cours":"En cours","livree":"Livrée",
-                "annulee":"Annulée","litige":"Litige",
+                "en_attente": "En attente", "acceptée": "Acceptée",
+                "en_cours": "En cours", "livree": "Livrée",
+                "annulee": "Annulée", "litige": "Litige",
             }
-            # Tri décroissant pour regrouper les gros segments
-            pairs = sorted(zip([labels_fr.get(k, k) for k in statuts],
-                               statuts.values()),
-                           key=lambda x: x[1], reverse=True)
+            pairs = sorted(
+                [(labels_fr.get(k, k), v) for k, v in statuts.items()],
+                key=lambda x: x[1], reverse=True)
             labels = [p[0] for p in pairs]
             values = [p[1] for p in pairs]
-            total = sum(values)
+            cols   = [BROWN_PALETTE[i % len(BROWN_PALETTE)]
+                      for i in range(len(labels))]
+            total  = sum(values)
 
-            # Étiquettes externes : "valeur (pct%)" — uniquement si segment >= 4%
-            texts = []
-            for v in values:
-                pct = v / total * 100 if total else 0
-                texts.append(f"{v} · {pct:.0f}%" if pct >= 4 else "")
-
+            # Donut PROPRE : aucun texte sur les parts, juste le total au centre
             fig = go.Figure(data=[go.Pie(
-                labels=labels,
-                values=values,
-                hole=0.60,
-                marker=dict(
-                    colors=BROWN_PALETTE,
-                    line=dict(color="#FFFFFF", width=2),
-                ),
-                text=texts,
-                textinfo="text",
-                textposition="outside",
-                textfont=dict(size=13, color="#3E2723",
-                              family="Segoe UI", weight="bold"),
-                outsidetextfont=dict(size=13, color="#3E2723", weight="bold"),
-                automargin=True,
+                labels=labels, values=values, hole=0.72,
+                marker=dict(colors=cols,
+                            line=dict(color="#FFFFFF", width=2)),
+                textinfo="none",
                 hovertemplate="<b>%{label}</b><br>%{value} demandes · %{percent}<extra></extra>",
-                sort=False,
-                direction="clockwise",
-                rotation=0,
+                sort=False, direction="clockwise", rotation=0,
             )])
             fig.add_annotation(
-                text=f"<b style='font-size:30px;color:#4E342E'>{total}</b>"
-                     f"<br><span style='font-size:13px;color:#8D6E63'>demandes</span>",
-                font=dict(family="Segoe UI"),
-                showarrow=False, x=0.5, y=0.5,
+                text=f"<span style='font-size:34px;font-weight:900;color:#4E342E'>{total}</span>"
+                     f"<br><span style='font-size:12px;color:#8D6E63;letter-spacing:1px'>DEMANDES</span>",
+                font=dict(family="Segoe UI"), showarrow=False, x=0.5, y=0.5,
             )
-            _style_chart(fig, height=360, show_legend=True)
-            fig.update_layout(
-                legend=dict(orientation="h", y=-0.12, x=0.5,
-                            xanchor="center",
-                            font=dict(size=12, color="#3E2723")),
-                margin=dict(t=30, b=30, l=40, r=40),
-            )
+            _style_chart(fig, height=240, show_legend=False)
+            fig.update_layout(margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True,
                             config={"displayModeBar": False})
+
+            # Légende pro : pastille + nom + valeur + barre + %
+            legend_html = "<div style='margin-top:6px'>"
+            for lab, val, c in zip(labels, values, cols):
+                pct = val / total * 100 if total else 0
+                legend_html += f"""
+                <div style="display:flex;align-items:center;gap:10px;margin:7px 0">
+                    <span style="width:11px;height:11px;border-radius:3px;
+                                 background:{c};flex-shrink:0"></span>
+                    <span style="flex:1;color:#4E342E;font-size:0.86rem;
+                                 font-weight:600">{lab}</span>
+                    <span style="color:#8D6E63;font-size:0.8rem;
+                                 min-width:64px;text-align:right">
+                        <b style="color:#3E2723">{val}</b> · {pct:.0f}%
+                    </span>
+                </div>"""
+            legend_html += "</div>"
+            st.markdown(legend_html, unsafe_allow_html=True)
         else:
             st.info("Aucune demande.")
 
-    # KYC statuts — BARRES horizontales arrondies avec valeurs
+    # KYC statuts — barres de progression pro (HTML pur)
     with col_g2:
         st.subheader("🆔 Statuts KYC")
         kyc_counts: dict[str, int] = {}
@@ -1117,57 +1113,50 @@ def tab_dashboard():
             kyc_counts[s] = kyc_counts.get(s, 0) + 1
         if kyc_counts:
             kyc_labels = {
-                "non_soumis":"Non soumis","en_verification":"En attente",
-                "approuve":"Approuvé","rejete":"Rejeté",
+                "non_soumis": "Non soumis", "en_verification": "En attente",
+                "approuve": "Approuvé", "rejete": "Rejeté",
             }
             order = ["approuve", "en_verification", "non_soumis", "rejete"]
             color_map = {
                 "approuve": "#8D6E63", "en_verification": "#C8860D",
-                "non_soumis": "#D7B89C", "rejete": "#B5482F",
+                "non_soumis": "#A1887F", "rejete": "#B5482F",
             }
-            items = [(kyc_labels.get(k, k), kyc_counts.get(k, 0), color_map.get(k, "#8D6E63"))
+            items = [(kyc_labels.get(k, k), kyc_counts.get(k, 0),
+                      color_map.get(k, "#6F4E37"))
                      for k in order if k in kyc_counts]
-            # Ajoute les statuts non prévus
             for k, v in kyc_counts.items():
                 if k not in order:
                     items.append((kyc_labels.get(k, k), v, "#6F4E37"))
 
-            ynames = [i[0] for i in items]
-            yvals  = [i[1] for i in items]
-            ycols  = [i[2] for i in items]
+            kyc_total = sum(i[1] for i in items) or 1
+            kmax = max(i[1] for i in items) or 1
 
-            x_max = max(yvals) if yvals else 1
-
-            fig2 = go.Figure(data=[go.Bar(
-                y=ynames,
-                x=yvals,
-                orientation="h",
-                marker=dict(
-                    color=ycols,
-                    line=dict(width=0),
-                    cornerradius=10,
-                ),
-                text=[f"  {v}" for v in yvals],
-                textposition="outside",
-                textfont=dict(size=16, color="#3E2723",
-                              family="Segoe UI", weight="bold"),
-                cliponaxis=False,
-                hovertemplate="<b>%{y}</b><br>%{x} utilisateur(s)<extra></extra>",
-            )])
-            _style_chart(fig2, height=340, show_legend=False)
-            fig2.update_layout(
-                bargap=0.45,
-                xaxis=dict(
-                    showticklabels=False, showgrid=False,
-                    range=[0, x_max * 1.25],   # marge pour les valeurs externes
-                ),
-                yaxis=dict(
-                    tickfont=dict(size=14, color="#3E2723", family="Segoe UI"),
-                ),
-                margin=dict(t=10, b=10, l=10, r=40),
-            )
-            st.plotly_chart(fig2, use_container_width=True,
-                            config={"displayModeBar": False})
+            st.markdown("<div style='margin-top:8px'>", unsafe_allow_html=True)
+            for nom, val, col in items:
+                pct_of_total = val / kyc_total * 100
+                bar_w = val / kmax * 100
+                st.markdown(f"""
+                <div style="margin-bottom:18px">
+                    <div style="display:flex;justify-content:space-between;
+                                margin-bottom:6px">
+                        <span style="color:#4E342E;font-size:0.9rem;
+                                     font-weight:700">{nom}</span>
+                        <span style="color:#3E2723;font-size:0.9rem;
+                                     font-weight:800">{val}
+                            <span style="color:#8D6E63;font-weight:600;
+                                         font-size:0.78rem"> · {pct_of_total:.0f}%</span>
+                        </span>
+                    </div>
+                    <div style="background:#EDE3D6;height:12px;
+                                border-radius:6px;overflow:hidden">
+                        <div style="background:linear-gradient(90deg,{col} 0%,
+                                    {col}cc 100%);height:100%;width:{bar_w}%;
+                                    border-radius:6px;
+                                    transition:width 0.6s cubic-bezier(.4,0,.2,1)">
+                        </div>
+                    </div>
+                </div>""", unsafe_allow_html=True)
+            st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.info("Aucun utilisateur.")
 
