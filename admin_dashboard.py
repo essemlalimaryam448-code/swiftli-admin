@@ -426,6 +426,65 @@ st.markdown(f"""
       margin: 4px 0 0 0;
       font-size: 0.95rem;
   }}
+
+  /* ─── Cartes du Centre de décision ───────────────────────── */
+  .decision-card {{
+      border-radius: 16px;
+      padding: 18px 20px;
+      height: 130px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 14px rgba(78, 52, 46, 0.10);
+      transition: all 0.25s ease;
+      overflow: hidden;
+  }}
+  .decision-card:hover {{
+      transform: translateY(-3px);
+      box-shadow: 0 8px 22px rgba(78, 52, 46, 0.18);
+  }}
+  .decision-card .dc-head {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+  }}
+  .decision-card .dc-icon {{ font-size: 1.5rem; line-height: 1; }}
+  .decision-card .dc-title {{
+      font-weight: 800 !important;
+      font-size: 0.92rem !important;
+      letter-spacing: 0.2px;
+  }}
+  .decision-card .dc-value {{
+      font-size: 2.4rem !important;
+      font-weight: 900 !important;
+      line-height: 1 !important;
+      margin: 4px 0;
+  }}
+  .decision-card .dc-sub {{
+      font-size: 0.78rem !important;
+      font-weight: 600 !important;
+      opacity: 0.85;
+  }}
+  /* Variantes de couleur — texte forcé pour passer outre le CSS global */
+  .dc-warn {{ background: linear-gradient(135deg, #F3E2C7 0%, #E8C98F 100%); }}
+  .dc-warn .dc-title, .dc-warn .dc-value, .dc-warn .dc-sub {{ color: #6D4C11 !important; }}
+  .dc-danger {{ background: linear-gradient(135deg, #F3D4CC 0%, #E0A99B 100%); }}
+  .dc-danger .dc-title, .dc-danger .dc-value, .dc-danger .dc-sub {{ color: #7B2D1A !important; }}
+  .dc-ok {{ background: linear-gradient(135deg, #E3D7C9 0%, #CDBBA6 100%); }}
+  .dc-ok .dc-title, .dc-ok .dc-value, .dc-ok .dc-sub {{ color: #4E342E !important; }}
+  .dc-primary {{ background: linear-gradient(135deg, #8D6E63 0%, #4E342E 100%); }}
+  .dc-primary .dc-title, .dc-primary .dc-value, .dc-primary .dc-sub {{ color: #FFFFFF !important; }}
+
+  /* Titre de section interne */
+  .inner-section-title {{
+      font-size: 1.25rem !important;
+      font-weight: 800 !important;
+      color: #4E342E !important;
+      margin: 6px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+  }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -990,120 +1049,71 @@ def tab_dashboard():
 
     # ── PANNEAU D'ALERTES & ACTIONS RAPIDES ──────────────────────────────
     st.markdown("---")
-    st.markdown(f"""
-    <div style="font-size:1.3rem;font-weight:800;color:{GREEN_D};margin-bottom:14px">
-        🚨 Centre de décision
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="inner-section-title">🚨 Centre de décision</div>',
+                unsafe_allow_html=True)
 
-    alert_col1, alert_col2, alert_col3 = st.columns(3)
-
-    # Alerte KYC en attente
-    with alert_col1:
-        if kyc_pending > 0:
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-                border-left: 4px solid {AMBER};
-                border-radius: 14px;
-                padding: 16px;
-                box-shadow: 0 4px 12px rgba(239, 159, 39, 0.15);
-                height: 110px;
-            ">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                    <span style="font-size:1.4rem">🟡</span>
-                    <span style="font-weight:700;color:#92400E;font-size:0.95rem">KYC à valider</span>
-                </div>
-                <div style="font-size:2rem;font-weight:900;color:#92400E;line-height:1">{kyc_pending}</div>
-                <div style="font-size:0.8rem;color:#92400E;opacity:0.8;margin-top:4px">
-                    Action requise — Section "🆔 KYC"
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, #E8DDD3 0%, #D7CCC8 100%);
-                border-left: 4px solid {GREEN};
-                border-radius: 14px;
-                padding: 16px;
-                height: 110px;
-            ">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                    <span style="font-size:1.4rem">✅</span>
-                    <span style="font-weight:700;color:#4E342E;font-size:0.95rem">Tous les KYC traités</span>
-                </div>
-                <div style="font-size:0.9rem;color:#4E342E;margin-top:4px">
-                    Aucune action requise pour l'instant.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-    # Alerte Litiges
     nb_litiges = sum(1 for d in demandes if "litige" in d.get("statut", ""))
-    with alert_col2:
-        if nb_litiges > 0 or len(reclams) > 0:
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, #FEE2E2 0%, #FCA5A5 100%);
-                border-left: 4px solid {RED};
-                border-radius: 14px;
-                padding: 16px;
-                box-shadow: 0 4px 12px rgba(226, 75, 74, 0.15);
-                height: 110px;
-            ">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                    <span style="font-size:1.4rem">🚨</span>
-                    <span style="font-weight:700;color:#991B1B;font-size:0.95rem">Litiges & Réclamations</span>
-                </div>
-                <div style="font-size:2rem;font-weight:900;color:#991B1B;line-height:1">{nb_litiges + len(reclams)}</div>
-                <div style="font-size:0.8rem;color:#991B1B;opacity:0.8;margin-top:4px">
-                    {nb_litiges} litiges · {len(reclams)} réclamations
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div style="
-                background: linear-gradient(135deg, #E8DDD3 0%, #D7CCC8 100%);
-                border-left: 4px solid {GREEN};
-                border-radius: 14px;
-                padding: 16px;
-                height: 110px;
-            ">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                    <span style="font-size:1.4rem">🛡️</span>
-                    <span style="font-weight:700;color:#4E342E;font-size:0.95rem">Plateforme saine</span>
-                </div>
-                <div style="font-size:0.9rem;color:#4E342E;margin-top:4px">
-                    Aucun litige ni réclamation actuellement.
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+    taux_conv = (livrees / len(demandes) * 100) if demandes else 0
 
-    # Taux de conversion
-    with alert_col3:
-        taux_conv = (livrees / len(demandes) * 100) if demandes else 0
-        couleur = GREEN if taux_conv >= 70 else (AMBER if taux_conv >= 40 else RED)
-        st.markdown(f"""
-        <div style="
-            background: linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
-            color: white;
-            border-radius: 14px;
-            padding: 16px;
-            box-shadow: 0 4px 14px rgba(15, 110, 86, 0.25);
-            height: 110px;
-        ">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <span style="font-size:1.4rem">📈</span>
-                <span style="font-weight:700;font-size:0.95rem">Taux de livraison</span>
+    # Carte 1 : KYC à valider
+    if kyc_pending > 0:
+        card1 = f"""
+        <div class="decision-card dc-warn">
+            <div class="dc-head">
+                <span class="dc-icon">🟡</span>
+                <span class="dc-title">KYC à valider</span>
             </div>
-            <div style="font-size:2rem;font-weight:900;line-height:1">{taux_conv:.0f}%</div>
-            <div style="font-size:0.8rem;opacity:0.9;margin-top:4px">
-                {livrees}/{len(demandes)} demandes livrées
+            <div class="dc-value">{kyc_pending}</div>
+            <div class="dc-sub">⚡ Action requise — Onglet KYC</div>
+        </div>"""
+    else:
+        card1 = """
+        <div class="decision-card dc-ok">
+            <div class="dc-head">
+                <span class="dc-icon">✅</span>
+                <span class="dc-title">KYC à jour</span>
             </div>
+            <div class="dc-value">0</div>
+            <div class="dc-sub">Aucune action requise</div>
+        </div>"""
+
+    # Carte 2 : Litiges & Réclamations
+    if nb_litiges > 0 or len(reclams) > 0:
+        card2 = f"""
+        <div class="decision-card dc-danger">
+            <div class="dc-head">
+                <span class="dc-icon">🚨</span>
+                <span class="dc-title">Litiges &amp; Réclamations</span>
+            </div>
+            <div class="dc-value">{nb_litiges + len(reclams)}</div>
+            <div class="dc-sub">{nb_litiges} litige(s) · {len(reclams)} réclamation(s)</div>
+        </div>"""
+    else:
+        card2 = """
+        <div class="decision-card dc-ok">
+            <div class="dc-head">
+                <span class="dc-icon">🛡️</span>
+                <span class="dc-title">Plateforme saine</span>
+            </div>
+            <div class="dc-value">0</div>
+            <div class="dc-sub">Aucun litige ni réclamation</div>
+        </div>"""
+
+    # Carte 3 : Taux de livraison
+    card3 = f"""
+    <div class="decision-card dc-primary">
+        <div class="dc-head">
+            <span class="dc-icon">📈</span>
+            <span class="dc-title">Taux de livraison</span>
         </div>
-        """, unsafe_allow_html=True)
+        <div class="dc-value">{taux_conv:.0f}%</div>
+        <div class="dc-sub">{livrees}/{len(demandes)} demandes livrées</div>
+    </div>"""
+
+    ac1, ac2, ac3 = st.columns(3, gap="medium")
+    with ac1: st.markdown(card1, unsafe_allow_html=True)
+    with ac2: st.markdown(card2, unsafe_allow_html=True)
+    with ac3: st.markdown(card3, unsafe_allow_html=True)
 
     # ── FEED D'ACTIVITÉ + TOP VOYAGEURS ──────────────────────────────────
     st.markdown("---")
@@ -1111,9 +1121,7 @@ def tab_dashboard():
 
     with activity_col:
         st.markdown(f"""
-        <div style="font-size:1.15rem;font-weight:800;color:{GREEN_D};margin-bottom:14px">
-            📰 Activité récente
-        </div>
+        <div class="inner-section-title">📰 Activité récente</div>
         """, unsafe_allow_html=True)
 
         # Combine demandes + users pour feed
@@ -1176,9 +1184,7 @@ def tab_dashboard():
 
     with top_col:
         st.markdown(f"""
-        <div style="font-size:1.15rem;font-weight:800;color:{GREEN_D};margin-bottom:14px">
-            🏆 Top voyageurs
-        </div>
+        <div class="inner-section-title">🏆 Top voyageurs</div>
         """, unsafe_allow_html=True)
 
         # Calcul des voyageurs avec le plus de livraisons
@@ -1229,9 +1235,7 @@ def tab_dashboard():
 
         # Top routes
         st.markdown(f"""
-        <div style="font-size:1.15rem;font-weight:800;color:{GREEN_D};margin:20px 0 14px">
-            🗺️ Top trajets
-        </div>
+        <div class="inner-section-title" style="margin-top:20px">🗺️ Top trajets</div>
         """, unsafe_allow_html=True)
 
         route_count: dict[str, int] = {}
