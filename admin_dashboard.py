@@ -77,81 +77,68 @@ def page_header(icon: str, eyebrow: str, title: str, subtitle: str,
     subtitle : sous-titre / description.
     pills    : liste optionnelle de (label, valeur) affichés en chips à droite.
     """
+    # IMPORTANT : le HTML doit être SUR UNE SEULE LIGNE (sans indentation)
+    # sinon Streamlit l'interprète comme un bloc de code et l'affiche en brut.
     pills_html = ""
     if pills:
         chips = ""
         for label, value in pills:
-            chips += f"""
-            <div style="
-                background:rgba(255,255,255,0.14);
-                border:1px solid rgba(255,255,255,0.22);
-                border-radius:12px;
-                padding:8px 14px;
-                backdrop-filter:blur(6px);
-                text-align:center;min-width:78px">
-                <div style="font-size:1.25rem;font-weight:800;
-                            color:#FFFFFF;line-height:1">{value}</div>
-                <div style="font-size:0.66rem;color:rgba(255,255,255,0.8);
-                            text-transform:uppercase;letter-spacing:0.5px;
-                            margin-top:3px">{label}</div>
-            </div>"""
-        pills_html = f"""
-        <div style="display:flex;gap:10px;align-items:center;
-                    position:relative;z-index:2">{chips}</div>"""
+            chips += (
+                "<div style=\"background:rgba(255,255,255,0.14);"
+                "border:1px solid rgba(255,255,255,0.22);border-radius:12px;"
+                "padding:8px 14px;text-align:center;min-width:78px\">"
+                f"<div style=\"font-size:1.25rem;font-weight:800;color:#FFFFFF;"
+                f"line-height:1\">{value}</div>"
+                f"<div style=\"font-size:0.66rem;color:rgba(255,255,255,0.8);"
+                f"text-transform:uppercase;letter-spacing:0.5px;"
+                f"margin-top:3px\">{label}</div></div>"
+            )
+        pills_html = (
+            "<div style=\"display:flex;gap:10px;align-items:center;"
+            f"position:relative;z-index:2\">{chips}</div>"
+        )
 
-    st.markdown(f"""
-    <div style="
-        background:linear-gradient(120deg,{grad_from} 0%,{grad_to} 100%);
-        border-radius:20px;
-        padding:26px 32px;
-        margin-bottom:22px;
-        position:relative;
-        overflow:hidden;
-        box-shadow:0 14px 34px rgba(62,39,35,0.28);
-    ">
-        <!-- Décor géométrique subtil -->
-        <div style="position:absolute;top:-60px;right:-30px;width:220px;
-            height:220px;border-radius:50%;
-            background:radial-gradient(circle,rgba(255,255,255,0.10) 0%,
-            rgba(255,255,255,0) 70%)"></div>
-        <div style="position:absolute;bottom:-80px;left:30%;width:180px;
-            height:180px;border-radius:50%;
-            background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,
-            rgba(255,255,255,0) 70%)"></div>
-        <!-- Liseré accent en haut -->
-        <div style="position:absolute;top:0;left:0;right:0;height:4px;
-            background:linear-gradient(90deg,#C8860D 0%,#E0B873 50%,
-            #C8860D 100%)"></div>
-
-        <div style="display:flex;align-items:center;
-                    justify-content:space-between;gap:20px;
-                    position:relative;z-index:2;flex-wrap:wrap">
-            <div style="display:flex;align-items:center;gap:18px">
-                <div style="
-                    width:62px;height:62px;flex-shrink:0;
-                    background:rgba(255,255,255,0.15);
-                    border:1px solid rgba(255,255,255,0.25);
-                    border-radius:18px;
-                    display:flex;align-items:center;justify-content:center;
-                    font-size:2rem;
-                    box-shadow:0 8px 20px rgba(0,0,0,0.18)">
-                    {icon}
-                </div>
-                <div>
-                    <div style="font-size:0.72rem;font-weight:700;
-                        letter-spacing:2px;text-transform:uppercase;
-                        color:rgba(255,255,255,0.65)">{eyebrow}</div>
-                    <h1 style="margin:4px 0 5px;color:#FFFFFF;
-                        font-size:1.85rem;font-weight:800;
-                        letter-spacing:-0.4px;line-height:1.1">{title}</h1>
-                    <p style="margin:0;color:rgba(255,255,255,0.78);
-                        font-size:0.9rem">{subtitle}</p>
-                </div>
-            </div>
-            {pills_html}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    html = (
+        f"<div style=\"background:linear-gradient(120deg,{grad_from} 0%,"
+        f"{grad_to} 100%);border-radius:20px;padding:26px 32px;"
+        "margin-bottom:22px;position:relative;overflow:hidden;"
+        "box-shadow:0 14px 34px rgba(62,39,35,0.28)\">"
+        # liseré accent doré en haut
+        "<div style=\"position:absolute;top:0;left:0;right:0;height:4px;"
+        "background:linear-gradient(90deg,#C8860D 0%,#E0B873 50%,"
+        "#C8860D 100%)\"></div>"
+        # décor cercles subtils
+        "<div style=\"position:absolute;top:-60px;right:-30px;width:220px;"
+        "height:220px;border-radius:50%;background:radial-gradient(circle,"
+        "rgba(255,255,255,0.10) 0%,rgba(255,255,255,0) 70%)\"></div>"
+        "<div style=\"position:absolute;bottom:-80px;left:30%;width:180px;"
+        "height:180px;border-radius:50%;background:radial-gradient(circle,"
+        "rgba(255,255,255,0.06) 0%,rgba(255,255,255,0) 70%)\"></div>"
+        # contenu
+        "<div style=\"display:flex;align-items:center;"
+        "justify-content:space-between;gap:20px;position:relative;"
+        "z-index:2;flex-wrap:wrap\">"
+        "<div style=\"display:flex;align-items:center;gap:18px\">"
+        "<div style=\"width:62px;height:62px;flex-shrink:0;"
+        "background:rgba(255,255,255,0.15);"
+        "border:1px solid rgba(255,255,255,0.25);border-radius:18px;"
+        "display:flex;align-items:center;justify-content:center;"
+        "font-size:2rem;box-shadow:0 8px 20px rgba(0,0,0,0.18)\">"
+        f"{icon}</div>"
+        "<div>"
+        "<div style=\"font-size:0.72rem;font-weight:700;letter-spacing:2px;"
+        "text-transform:uppercase;color:rgba(255,255,255,0.65)\">"
+        f"{eyebrow}</div>"
+        "<h1 style=\"margin:4px 0 5px;color:#FFFFFF;font-size:1.85rem;"
+        "font-weight:800;letter-spacing:-0.4px;line-height:1.1\">"
+        f"{title}</h1>"
+        "<p style=\"margin:0;color:rgba(255,255,255,0.78);"
+        f"font-size:0.9rem\">{subtitle}</p>"
+        "</div></div>"
+        f"{pills_html}"
+        "</div></div>"
+    )
+    st.markdown(html, unsafe_allow_html=True)
 
 
 def _style_chart(fig, height: int = 320, show_legend: bool = True):
