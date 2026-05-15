@@ -55,6 +55,39 @@ AMBER   = "#C8860D"   # Or/caramel (accent)
 RED     = "#B5482F"   # Brique (alertes)
 BLUE    = "#795548"   # Brun terre (remplace le bleu)
 
+# Palette brune harmonisée pour les graphiques
+BROWN_PALETTE = ["#8D6E63", "#C8860D", "#A1745C", "#5D4037",
+                 "#B5482F", "#4E342E", "#D7B89C", "#6F4E37"]
+
+
+def _style_chart(fig, height: int = 320, show_legend: bool = True):
+    """Applique un style café cohérent, transparent et lisible à un graphique Plotly."""
+    fig.update_layout(
+        height=height,
+        margin=dict(t=10, b=10, l=10, r=10),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(family="Segoe UI, sans-serif", size=13, color="#4E342E"),
+        showlegend=show_legend,
+        legend=dict(
+            orientation="v",
+            font=dict(size=12, color="#5D4037"),
+            bgcolor="rgba(0,0,0,0)",
+        ),
+        hoverlabel=dict(
+            bgcolor="#4E342E",
+            font=dict(color="white", size=13),
+            bordercolor="#4E342E",
+        ),
+        transition={"duration": 500, "easing": "cubic-in-out"},
+    )
+    fig.update_xaxes(showgrid=False, zeroline=False,
+                     tickfont=dict(color="#5D4037", size=12),
+                     linecolor="#D7CCC8")
+    fig.update_yaxes(showgrid=True, gridcolor="rgba(141,110,99,0.15)",
+                     zeroline=False, tickfont=dict(color="#5D4037", size=12))
+    return fig
+
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Swiftli Admin", page_icon="📦", layout="wide",
                    initial_sidebar_state="expanded")
@@ -846,7 +879,7 @@ def tab_dashboard():
     st.markdown("---")
     col_g1, col_g2, col_g3 = st.columns(3)
 
-    # Demandes par statut
+    # Demandes par statut — DONUT animé avec total au centre
     with col_g1:
         st.subheader("📦 Demandes par statut")
         statuts: dict[str, int] = {}
@@ -859,16 +892,40 @@ def tab_dashboard():
                 "en_cours":"En cours","livree":"Livrée",
                 "annulee":"Annulée","litige":"Litige",
             }
-            df = pd.DataFrame([{"Statut": labels_fr.get(k,k), "Nombre": v}
-                                for k, v in statuts.items()])
-            fig = px.pie(df, names="Statut", values="Nombre", hole=0.42,
-                         color_discrete_sequence=[GREEN,AMBER,BLUE,"#8B5CF6",RED,GREEN_D])
-            fig.update_layout(margin=dict(t=0,b=0))
-            st.plotly_chart(fig, use_container_width=True)
+            labels = [labels_fr.get(k, k) for k in statuts]
+            values = list(statuts.values())
+            total = sum(values)
+
+            fig = go.Figure(data=[go.Pie(
+                labels=labels,
+                values=values,
+                hole=0.62,
+                marker=dict(
+                    colors=BROWN_PALETTE,
+                    line=dict(color="#FAF6F1", width=3),
+                ),
+                textinfo="percent",
+                textfont=dict(size=13, color="white", family="Segoe UI"),
+                hovertemplate="<b>%{label}</b><br>%{value} demandes<br>%{percent}<extra></extra>",
+                pull=[0.04 if v == max(values) else 0 for v in values],
+                sort=True,
+                direction="clockwise",
+                rotation=90,
+            )])
+            fig.add_annotation(
+                text=f"<b>{total}</b><br><span style='font-size:12px;color:#8D6E63'>demandes</span>",
+                font=dict(size=26, color="#4E342E", family="Segoe UI"),
+                showarrow=False, x=0.5, y=0.5,
+            )
+            _style_chart(fig, height=340, show_legend=True)
+            fig.update_layout(legend=dict(orientation="h", y=-0.1,
+                                          x=0.5, xanchor="center"))
+            st.plotly_chart(fig, use_container_width=True,
+                            config={"displayModeBar": False})
         else:
             st.info("Aucune demande.")
 
-    # KYC statuts
+    # KYC statuts — BARRES horizontales arrondies avec valeurs
     with col_g2:
         st.subheader("🆔 Statuts KYC")
         kyc_counts: dict[str, int] = {}
@@ -880,16 +937,43 @@ def tab_dashboard():
                 "non_soumis":"Non soumis","en_verification":"En attente",
                 "approuve":"Approuvé","rejete":"Rejeté",
             }
-            df_k = pd.DataFrame([{"Statut": kyc_labels.get(k,k), "Nombre": v}
-                                  for k,v in kyc_counts.items()])
-            fig2 = px.bar(df_k, x="Statut", y="Nombre",
-                          color="Statut",
-                          color_discrete_map={
-                              "Non soumis":"#9CA3AF","En attente":AMBER,
-                              "Approuvé":GREEN,"Rejeté":RED,
-                          })
-            fig2.update_layout(margin=dict(t=0,b=0), showlegend=False)
-            st.plotly_chart(fig2, use_container_width=True)
+            order = ["approuve", "en_verification", "non_soumis", "rejete"]
+            color_map = {
+                "approuve": "#8D6E63", "en_verification": "#C8860D",
+                "non_soumis": "#D7B89C", "rejete": "#B5482F",
+            }
+            items = [(kyc_labels.get(k, k), kyc_counts.get(k, 0), color_map.get(k, "#8D6E63"))
+                     for k in order if k in kyc_counts]
+            # Ajoute les statuts non prévus
+            for k, v in kyc_counts.items():
+                if k not in order:
+                    items.append((kyc_labels.get(k, k), v, "#6F4E37"))
+
+            ynames = [i[0] for i in items]
+            yvals  = [i[1] for i in items]
+            ycols  = [i[2] for i in items]
+
+            fig2 = go.Figure(data=[go.Bar(
+                y=ynames,
+                x=yvals,
+                orientation="h",
+                marker=dict(
+                    color=ycols,
+                    line=dict(width=0),
+                    cornerradius=8,
+                ),
+                text=yvals,
+                textposition="outside",
+                textfont=dict(size=14, color="#4E342E", family="Segoe UI"),
+                hovertemplate="<b>%{y}</b><br>%{x} utilisateur(s)<extra></extra>",
+            )])
+            _style_chart(fig2, height=340, show_legend=False)
+            fig2.update_layout(
+                bargap=0.4,
+                xaxis=dict(showticklabels=False, showgrid=False),
+            )
+            st.plotly_chart(fig2, use_container_width=True,
+                            config={"displayModeBar": False})
         else:
             st.info("Aucun utilisateur.")
 
@@ -1915,12 +1999,21 @@ def tab_tarification():
         st.markdown("<br>", unsafe_allow_html=True)
         st.metric("Prix suggéré", f"{prix:.1f} MAD", delta=f"{dist} km")
         fig = go.Figure(go.Bar(
-            x=["Base","Poids","Distance"],
+            x=["Base", "Poids", "Distance"],
             y=[15, poids*2.5, dist*0.8],
-            marker_color=[GREEN, BLUE, AMBER],
+            marker=dict(
+                color=["#8D6E63", "#C8860D", "#5D4037"],
+                cornerradius=8,
+            ),
+            text=[f"{15:.0f}", f"{poids*2.5:.0f}", f"{dist*0.8:.0f}"],
+            textposition="outside",
+            textfont=dict(size=14, color="#4E342E"),
+            hovertemplate="<b>%{x}</b><br>%{y:.1f} MAD<extra></extra>",
         ))
-        fig.update_layout(height=220, margin=dict(t=10,b=10), yaxis_title="MAD")
-        st.plotly_chart(fig, use_container_width=True)
+        _style_chart(fig, height=260, show_legend=False)
+        fig.update_layout(yaxis_title="MAD", bargap=0.45)
+        st.plotly_chart(fig, use_container_width=True,
+                        config={"displayModeBar": False})
     st.markdown("---")
     st.subheader("Grille tarifaire — Depuis Casablanca")
     rows = []
