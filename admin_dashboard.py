@@ -17,6 +17,12 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+try:
+    from streamlit_autorefresh import st_autorefresh
+    _HAS_AUTOREFRESH = True
+except Exception:
+    _HAS_AUTOREFRESH = False
+
 
 # ─── Secrets ─────────────────────────────────────────────────────────────────
 def _secret(key: str, default: str = "") -> str:
@@ -968,11 +974,35 @@ def tab_dashboard():
                 Tableau de bord Swiftli
             </h1>
             <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">
-                Vue d'ensemble en temps réel · {datetime.now().strftime("%d %B %Y · %H:%M")}
+                Vue d'ensemble en temps réel · {datetime.now().strftime("%d %B %Y · %H:%M:%S")}
             </p>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # ── Barre de contrôle : auto-rafraîchissement dynamique ──────────────
+    rc1, rc2, rc3 = st.columns([1.3, 1, 1])
+    with rc1:
+        auto_on = st.toggle("🔄 Auto-actualisation", value=True,
+                            help="Les graphiques se mettent à jour automatiquement")
+    with rc2:
+        interval_label = st.selectbox("Fréquence", ["10 s", "30 s", "60 s"],
+                                      index=1, label_visibility="collapsed")
+    with rc3:
+        if st.button("⟳ Actualiser maintenant", use_container_width=True):
+            st.rerun()
+
+    interval_ms = {"10 s": 10000, "30 s": 30000, "60 s": 60000}[interval_label]
+    if auto_on and _HAS_AUTOREFRESH:
+        count = st_autorefresh(interval=interval_ms, key="dash_autorefresh")
+        st.caption(f"🟢 Mise à jour auto active · cycle #{count} · "
+                   f"prochaine dans {interval_label} · "
+                   f"dernière : {datetime.now().strftime('%H:%M:%S')}")
+    elif auto_on and not _HAS_AUTOREFRESH:
+        st.caption("⚠️ Module streamlit-autorefresh non installé — "
+                   "utilisez le bouton Actualiser.")
+    else:
+        st.caption("⏸️ Auto-actualisation en pause.")
 
     with st.spinner("Chargement des données..."):
         users    = fs_get("users",    _token())
