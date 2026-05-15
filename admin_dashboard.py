@@ -46,12 +46,14 @@ FACEPP_KEY    = _secret("FACEPP_API_KEY")
 FACEPP_SECRET = _secret("FACEPP_API_SECRET")
 FACE_MATCH_THRESHOLD = 70.0  # Score minimum pour considérer comme match (0-100)
 
-# ─── Couleurs ─────────────────────────────────────────────────────────────────
-GREEN   = "#0E9268"
-GREEN_D = "#0F6E56"
-AMBER   = "#EF9F27"
-RED     = "#E24B4A"
-BLUE    = "#185FA5"
+# ─── Couleurs (thème BRUN / CAFÉ) ─────────────────────────────────────────────
+# Les noms GREEN/GREEN_D sont conservés pour ne pas casser le reste du code,
+# mais contiennent désormais des teintes brunes.
+GREEN   = "#8D6E63"   # Brun moka (couleur primaire)
+GREEN_D = "#4E342E"   # Brun espresso (couleur foncée)
+AMBER   = "#C8860D"   # Or/caramel (accent)
+RED     = "#B5482F"   # Brique (alertes)
+BLUE    = "#795548"   # Brun terre (remplace le bleu)
 
 # ─── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Swiftli Admin", page_icon="📦", layout="wide",
@@ -59,30 +61,30 @@ st.set_page_config(page_title="Swiftli Admin", page_icon="📦", layout="wide",
 
 st.markdown(f"""
 <style>
-  /* ─── Global page styling ───────────────────────────────── */
+  /* ─── Global page styling (thème BRUN crème) ─────────────── */
   .stApp {{
-      background: #FFFFFF;
+      background: linear-gradient(180deg, #FAF6F1 0%, #F5EFE8 100%);
   }}
 
-  /* Force text colors visible on white background */
+  /* Force text colors visible on cream background */
   .stApp, .stApp p, .stApp span, .stApp div, .stApp label {{
-      color: #111827 !important;
+      color: #3E2723 !important;
   }}
 
-  /* Force headers dark */
+  /* Force headers brun espresso */
   .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5, .stApp h6 {{
-      color: #0F6E56 !important;
+      color: #4E342E !important;
       font-weight: 800 !important;
   }}
 
   /* Subheader text */
   .stApp [data-testid="stMarkdownContainer"] p {{
-      color: #1F2937 !important;
+      color: #5D4037 !important;
   }}
 
   /* Caption / small text */
   .stApp small {{
-      color: #4B5563 !important;
+      color: #6D4C41 !important;
   }}
 
   /* Hide Streamlit branding for a cleaner look */
@@ -142,7 +144,7 @@ st.markdown(f"""
   }}
   [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] div, [data-testid="stMetricLabel"] p {{
       font-size: 0.85rem !important;
-      color: #374151 !important;
+      color: #5D4037 !important;
       font-weight: 700 !important;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -206,8 +208,8 @@ st.markdown(f"""
       box-shadow: 0 1px 3px rgba(146, 64, 14, 0.1);
   }}
   .badge-approved {{
-      background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
-      color: #065F46;
+      background: linear-gradient(135deg, #E8DDD3 0%, #D7CCC8 100%);
+      color: #4E342E;
       padding: 4px 12px;
       border-radius: 99px;
       font-size: 0.8rem;
@@ -261,7 +263,7 @@ st.markdown(f"""
       border-radius: 10px !important;
       border: 1.5px solid #E5E7EB !important;
       transition: all 0.2s ease;
-      color: #111827 !important;
+      color: #3E2723 !important;
       background: white !important;
   }}
   .stTextInput input:focus, .stSelectbox select:focus, .stTextArea textarea:focus {{
@@ -272,14 +274,14 @@ st.markdown(f"""
   /* Selectbox dropdown */
   [data-baseweb="select"] > div {{
       background: white !important;
-      color: #111827 !important;
+      color: #3E2723 !important;
   }}
-  [data-baseweb="select"] * {{ color: #111827 !important; }}
-  [data-baseweb="popover"] li {{ color: #111827 !important; }}
+  [data-baseweb="select"] * {{ color: #3E2723 !important; }}
+  [data-baseweb="popover"] li {{ color: #3E2723 !important; }}
 
   /* Number input */
   .stNumberInput input {{
-      color: #111827 !important;
+      color: #3E2723 !important;
       background: white !important;
   }}
 
@@ -287,7 +289,7 @@ st.markdown(f"""
   .stTextInput label, .stSelectbox label, .stTextArea label,
   .stNumberInput label, .stRadio label, .stCheckbox label,
   .stFileUploader label {{
-      color: #374151 !important;
+      color: #5D4037 !important;
       font-weight: 600 !important;
   }}
 
@@ -534,13 +536,13 @@ def _photo(url: str | None, label: str):
             display: inline-block;
             margin-top: 8px;
             padding: 4px 10px;
-            background: #F0FDF4;
+            background: #F5EFE8;
             color: {GREEN_D};
             border-radius: 8px;
             font-size: 0.75rem;
             font-weight: 600;
             text-decoration: none;
-            border: 1px solid #D1FAE5;
+            border: 1px solid #E8DDD3;
             transition: all 0.2s ease;
         '>🔍 Plein écran</a>
         """, unsafe_allow_html=True)
@@ -588,7 +590,7 @@ def _face_match_badge(confidence: float | None, error: str | None) -> str:
                 f"border-radius:8px;font-size:13px'>⚙️ Vérification visage : "
                 f"<i>{error or 'non disponible'}</i></div>")
     if confidence >= FACE_MATCH_THRESHOLD:
-        return (f"<div style='background:#D1FAE5;color:#065F46;padding:10px 14px;"
+        return (f"<div style='background:#E8DDD3;color:#4E342E;padding:10px 14px;"
                 f"border-radius:8px;font-weight:600'>"
                 f"✅ Visages correspondants — confiance {confidence:.1f}%</div>")
     return (f"<div style='background:#FEE2E2;color:#991B1B;padding:10px 14px;"
@@ -628,8 +630,8 @@ def login_page():
                 display: inline-block;
                 margin-top: 12px;
                 padding: 4px 12px;
-                background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
-                color: #065F46;
+                background: linear-gradient(135deg, #E8DDD3 0%, #D7CCC8 100%);
+                color: #4E342E;
                 border-radius: 99px;
                 font-size: 0.75rem;
                 font-weight: 700;
@@ -702,7 +704,7 @@ def sidebar() -> str:
             <div style="
                 width: 70px; height: 70px;
                 margin: 0 auto 12px;
-                background: linear-gradient(135deg, #fff 0%, #D1FAE5 100%);
+                background: linear-gradient(135deg, #fff 0%, #E8DDD3 100%);
                 border-radius: 18px;
                 display: flex; align-items: center; justify-content: center;
                 font-size: 2.2rem;
@@ -926,7 +928,7 @@ def tab_dashboard():
         else:
             st.markdown(f"""
             <div style="
-                background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+                background: linear-gradient(135deg, #E8DDD3 0%, #D7CCC8 100%);
                 border-left: 4px solid {GREEN};
                 border-radius: 14px;
                 padding: 16px;
@@ -934,9 +936,9 @@ def tab_dashboard():
             ">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                     <span style="font-size:1.4rem">✅</span>
-                    <span style="font-weight:700;color:#065F46;font-size:0.95rem">Tous les KYC traités</span>
+                    <span style="font-weight:700;color:#4E342E;font-size:0.95rem">Tous les KYC traités</span>
                 </div>
-                <div style="font-size:0.9rem;color:#065F46;margin-top:4px">
+                <div style="font-size:0.9rem;color:#4E342E;margin-top:4px">
                     Aucune action requise pour l'instant.
                 </div>
             </div>
@@ -968,7 +970,7 @@ def tab_dashboard():
         else:
             st.markdown(f"""
             <div style="
-                background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+                background: linear-gradient(135deg, #E8DDD3 0%, #D7CCC8 100%);
                 border-left: 4px solid {GREEN};
                 border-radius: 14px;
                 padding: 16px;
@@ -976,9 +978,9 @@ def tab_dashboard():
             ">
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
                     <span style="font-size:1.4rem">🛡️</span>
-                    <span style="font-weight:700;color:#065F46;font-size:0.95rem">Plateforme saine</span>
+                    <span style="font-weight:700;color:#4E342E;font-size:0.95rem">Plateforme saine</span>
                 </div>
-                <div style="font-size:0.9rem;color:#065F46;margin-top:4px">
+                <div style="font-size:0.9rem;color:#4E342E;margin-top:4px">
                     Aucun litige ni réclamation actuellement.
                 </div>
             </div>
@@ -1178,7 +1180,7 @@ def tab_users():
     # Header hero
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, #185FA5 0%, #1E40AF 100%);
+        background: linear-gradient(135deg, #795548 0%, #4E342E 100%);
         color: white;
         padding: 22px 28px;
         border-radius: 16px;
@@ -1242,7 +1244,7 @@ def tab_users():
     st.markdown(f"""
     <div style="
         padding:10px 14px; margin:10px 0;
-        background:linear-gradient(135deg, #F0FDF4 0%, #D1FAE5 100%);
+        background:linear-gradient(135deg, #F5EFE8 0%, #E8DDD3 100%);
         border-left:4px solid {GREEN};
         border-radius:10px;
         color:{GREEN_D}; font-weight:600;
@@ -1265,7 +1267,7 @@ def tab_users():
                     initial = nom[0].upper() if nom != "Sans nom" else "?"
                     kyc_st = u.get('kycStatut','non_soumis')
                     kyc_colors = {
-                        "approuve": ("#D1FAE5", "#065F46", "✅"),
+                        "approuve": ("#E8DDD3", "#4E342E", "✅"),
                         "en_verification": ("#FEF3C7", "#92400E", "🟡"),
                         "rejete": ("#FEE2E2", "#991B1B", "🔴"),
                         "non_soumis": ("#F3F4F6", "#6B7280", "⚪"),
@@ -1386,7 +1388,7 @@ def tab_kyc():
     # Header hero
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, #EF9F27 0%, #D97706 100%);
+        background: linear-gradient(135deg, #A1887F 0%, #6D4C41 100%);
         color: white;
         padding: 22px 28px;
         border-radius: 16px;
@@ -1567,7 +1569,7 @@ def tab_demandes():
     # Header hero
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+        background: linear-gradient(135deg, #8D6E63 0%, #5D4037 100%);
         color: white;
         padding: 22px 28px;
         border-radius: 16px;
@@ -1667,7 +1669,7 @@ def tab_trajets():
     # Header hero
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, #14B8A6 0%, #0F766E 100%);
+        background: linear-gradient(135deg, #A1745C 0%, #6F4E37 100%);
         color: white;
         padding: 22px 28px;
         border-radius: 16px;
@@ -1733,7 +1735,7 @@ def tab_litiges():
     # Header hero
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, #E24B4A 0%, #B91C1C 100%);
+        background: linear-gradient(135deg, #B5482F 0%, #7B2D1A 100%);
         color: white;
         padding: 22px 28px;
         border-radius: 16px;
@@ -1803,7 +1805,7 @@ def tab_notifications():
     # Header hero
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        background: linear-gradient(135deg, #C8860D 0%, #8B5E0D 100%);
         color: white;
         padding: 22px 28px;
         border-radius: 16px;
@@ -1872,7 +1874,7 @@ def tab_tarification():
     # Header hero
     st.markdown(f"""
     <div style="
-        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        background: linear-gradient(135deg, #8D6E63 0%, #4E342E 100%);
         color: white;
         padding: 22px 28px;
         border-radius: 16px;
