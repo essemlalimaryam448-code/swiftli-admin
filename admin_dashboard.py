@@ -1056,34 +1056,53 @@ def tab_dashboard():
                 "en_cours":"En cours","livree":"Livrée",
                 "annulee":"Annulée","litige":"Litige",
             }
-            labels = [labels_fr.get(k, k) for k in statuts]
-            values = list(statuts.values())
+            # Tri décroissant pour regrouper les gros segments
+            pairs = sorted(zip([labels_fr.get(k, k) for k in statuts],
+                               statuts.values()),
+                           key=lambda x: x[1], reverse=True)
+            labels = [p[0] for p in pairs]
+            values = [p[1] for p in pairs]
             total = sum(values)
+
+            # Étiquettes externes : "valeur (pct%)" — uniquement si segment >= 4%
+            texts = []
+            for v in values:
+                pct = v / total * 100 if total else 0
+                texts.append(f"{v} · {pct:.0f}%" if pct >= 4 else "")
 
             fig = go.Figure(data=[go.Pie(
                 labels=labels,
                 values=values,
-                hole=0.62,
+                hole=0.60,
                 marker=dict(
                     colors=BROWN_PALETTE,
-                    line=dict(color="#FAF6F1", width=3),
+                    line=dict(color="#FFFFFF", width=2),
                 ),
-                textinfo="percent",
-                textfont=dict(size=13, color="white", family="Segoe UI"),
-                hovertemplate="<b>%{label}</b><br>%{value} demandes<br>%{percent}<extra></extra>",
-                pull=[0.04 if v == max(values) else 0 for v in values],
-                sort=True,
+                text=texts,
+                textinfo="text",
+                textposition="outside",
+                textfont=dict(size=13, color="#3E2723",
+                              family="Segoe UI", weight="bold"),
+                outsidetextfont=dict(size=13, color="#3E2723", weight="bold"),
+                automargin=True,
+                hovertemplate="<b>%{label}</b><br>%{value} demandes · %{percent}<extra></extra>",
+                sort=False,
                 direction="clockwise",
-                rotation=90,
+                rotation=0,
             )])
             fig.add_annotation(
-                text=f"<b>{total}</b><br><span style='font-size:12px;color:#8D6E63'>demandes</span>",
-                font=dict(size=26, color="#4E342E", family="Segoe UI"),
+                text=f"<b style='font-size:30px;color:#4E342E'>{total}</b>"
+                     f"<br><span style='font-size:13px;color:#8D6E63'>demandes</span>",
+                font=dict(family="Segoe UI"),
                 showarrow=False, x=0.5, y=0.5,
             )
-            _style_chart(fig, height=340, show_legend=True)
-            fig.update_layout(legend=dict(orientation="h", y=-0.1,
-                                          x=0.5, xanchor="center"))
+            _style_chart(fig, height=360, show_legend=True)
+            fig.update_layout(
+                legend=dict(orientation="h", y=-0.12, x=0.5,
+                            xanchor="center",
+                            font=dict(size=12, color="#3E2723")),
+                margin=dict(t=30, b=30, l=40, r=40),
+            )
             st.plotly_chart(fig, use_container_width=True,
                             config={"displayModeBar": False})
         else:
@@ -1117,6 +1136,8 @@ def tab_dashboard():
             yvals  = [i[1] for i in items]
             ycols  = [i[2] for i in items]
 
+            x_max = max(yvals) if yvals else 1
+
             fig2 = go.Figure(data=[go.Bar(
                 y=ynames,
                 x=yvals,
@@ -1124,17 +1145,26 @@ def tab_dashboard():
                 marker=dict(
                     color=ycols,
                     line=dict(width=0),
-                    cornerradius=8,
+                    cornerradius=10,
                 ),
-                text=yvals,
+                text=[f"  {v}" for v in yvals],
                 textposition="outside",
-                textfont=dict(size=14, color="#4E342E", family="Segoe UI"),
+                textfont=dict(size=16, color="#3E2723",
+                              family="Segoe UI", weight="bold"),
+                cliponaxis=False,
                 hovertemplate="<b>%{y}</b><br>%{x} utilisateur(s)<extra></extra>",
             )])
             _style_chart(fig2, height=340, show_legend=False)
             fig2.update_layout(
-                bargap=0.4,
-                xaxis=dict(showticklabels=False, showgrid=False),
+                bargap=0.45,
+                xaxis=dict(
+                    showticklabels=False, showgrid=False,
+                    range=[0, x_max * 1.25],   # marge pour les valeurs externes
+                ),
+                yaxis=dict(
+                    tickfont=dict(size=14, color="#3E2723", family="Segoe UI"),
+                ),
+                margin=dict(t=10, b=10, l=10, r=40),
             )
             st.plotly_chart(fig2, use_container_width=True,
                             config={"displayModeBar": False})
