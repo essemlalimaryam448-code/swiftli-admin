@@ -128,7 +128,7 @@ def page_header(icon: str, eyebrow: str, title: str, subtitle: str,
         "<div>"
         f"<div class=\"ph-eyebrow\">{eyebrow}</div>"
         f"<h1>{title}</h1>"
-        f"<p class=\"ph-sub\">{subtitle}</p>"
+        f"<div class=\"ph-sub\">{subtitle}</div>"
         "</div></div>"
         f"{pills_html}"
         "</div></div>"
@@ -272,31 +272,36 @@ st.markdown(f"""
       color: white !important;
   }}
 
-  /* En-tête de page : TOUT le texte en blanc (priorité maximale) */
-  .page-hero, .page-hero * {{
+  /* En-tête de page : TOUT le texte en blanc (spécificité très haute) */
+  .stApp .page-hero,
+  .stApp .page-hero *,
+  .stApp .page-hero div,
+  .stApp .page-hero h1,
+  .stApp .page-hero [data-testid="stMarkdownContainer"] * {{
       color: #FFFFFF !important;
   }}
-  .page-hero h1 {{
+  .stApp .page-hero h1 {{
       color: #FFFFFF !important;
-      font-size: 1.85rem !important;
+      font-size: 1.9rem !important;
       font-weight: 800 !important;
-      margin: 4px 0 5px !important;
+      margin: 4px 0 6px !important;
+      line-height: 1.15 !important;
   }}
-  .page-hero .ph-eyebrow {{
-      color: rgba(255,255,255,0.70) !important;
-      font-size: 0.72rem !important;
-      font-weight: 700 !important;
+  .stApp .page-hero .ph-eyebrow {{
+      color: #F0E6DA !important;
+      font-size: 0.74rem !important;
+      font-weight: 800 !important;
       letter-spacing: 2px !important;
       text-transform: uppercase !important;
   }}
-  .page-hero .ph-sub {{
-      color: rgba(255,255,255,0.82) !important;
-      font-size: 0.9rem !important;
+  .stApp .page-hero .ph-sub {{
+      color: #F5EDE4 !important;
+      font-size: 0.92rem !important;
+      font-weight: 500 !important;
       margin: 0 !important;
   }}
-  .page-hero .ph-icon {{
+  .stApp .page-hero .ph-icon {{
       font-size: 2rem !important;
-      filter: none !important;
   }}
 
   /* Sidebar : forcer texte BLANC partout (priorité max) */
