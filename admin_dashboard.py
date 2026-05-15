@@ -66,6 +66,94 @@ BROWN_PALETTE = ["#8D6E63", "#C8860D", "#A1745C", "#5D4037",
                  "#B5482F", "#4E342E", "#D7B89C", "#6F4E37"]
 
 
+def page_header(icon: str, eyebrow: str, title: str, subtitle: str,
+                grad_from: str = "#5D4037", grad_to: str = "#3E2723",
+                pills: list | None = None):
+    """En-tête de page professionnel et cohérent (style SaaS premium).
+
+    icon     : emoji affiché dans le bloc verre.
+    eyebrow  : petit texte en majuscules au-dessus du titre.
+    title    : titre principal.
+    subtitle : sous-titre / description.
+    pills    : liste optionnelle de (label, valeur) affichés en chips à droite.
+    """
+    pills_html = ""
+    if pills:
+        chips = ""
+        for label, value in pills:
+            chips += f"""
+            <div style="
+                background:rgba(255,255,255,0.14);
+                border:1px solid rgba(255,255,255,0.22);
+                border-radius:12px;
+                padding:8px 14px;
+                backdrop-filter:blur(6px);
+                text-align:center;min-width:78px">
+                <div style="font-size:1.25rem;font-weight:800;
+                            color:#FFFFFF;line-height:1">{value}</div>
+                <div style="font-size:0.66rem;color:rgba(255,255,255,0.8);
+                            text-transform:uppercase;letter-spacing:0.5px;
+                            margin-top:3px">{label}</div>
+            </div>"""
+        pills_html = f"""
+        <div style="display:flex;gap:10px;align-items:center;
+                    position:relative;z-index:2">{chips}</div>"""
+
+    st.markdown(f"""
+    <div style="
+        background:linear-gradient(120deg,{grad_from} 0%,{grad_to} 100%);
+        border-radius:20px;
+        padding:26px 32px;
+        margin-bottom:22px;
+        position:relative;
+        overflow:hidden;
+        box-shadow:0 14px 34px rgba(62,39,35,0.28);
+    ">
+        <!-- Décor géométrique subtil -->
+        <div style="position:absolute;top:-60px;right:-30px;width:220px;
+            height:220px;border-radius:50%;
+            background:radial-gradient(circle,rgba(255,255,255,0.10) 0%,
+            rgba(255,255,255,0) 70%)"></div>
+        <div style="position:absolute;bottom:-80px;left:30%;width:180px;
+            height:180px;border-radius:50%;
+            background:radial-gradient(circle,rgba(255,255,255,0.06) 0%,
+            rgba(255,255,255,0) 70%)"></div>
+        <!-- Liseré accent en haut -->
+        <div style="position:absolute;top:0;left:0;right:0;height:4px;
+            background:linear-gradient(90deg,#C8860D 0%,#E0B873 50%,
+            #C8860D 100%)"></div>
+
+        <div style="display:flex;align-items:center;
+                    justify-content:space-between;gap:20px;
+                    position:relative;z-index:2;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:18px">
+                <div style="
+                    width:62px;height:62px;flex-shrink:0;
+                    background:rgba(255,255,255,0.15);
+                    border:1px solid rgba(255,255,255,0.25);
+                    border-radius:18px;
+                    display:flex;align-items:center;justify-content:center;
+                    font-size:2rem;
+                    box-shadow:0 8px 20px rgba(0,0,0,0.18)">
+                    {icon}
+                </div>
+                <div>
+                    <div style="font-size:0.72rem;font-weight:700;
+                        letter-spacing:2px;text-transform:uppercase;
+                        color:rgba(255,255,255,0.65)">{eyebrow}</div>
+                    <h1 style="margin:4px 0 5px;color:#FFFFFF;
+                        font-size:1.85rem;font-weight:800;
+                        letter-spacing:-0.4px;line-height:1.1">{title}</h1>
+                    <p style="margin:0;color:rgba(255,255,255,0.78);
+                        font-size:0.9rem">{subtitle}</p>
+                </div>
+            </div>
+            {pills_html}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
 def _style_chart(fig, height: int = 320, show_legend: bool = True):
     """Applique un style café cohérent, transparent et lisible à un graphique Plotly."""
     fig.update_layout(
@@ -948,37 +1036,13 @@ def sidebar() -> str:
 
 # ─── 1. Tableau de bord ───────────────────────────────────────────────────────
 def tab_dashboard():
-    # Hero section
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, {GREEN} 0%, {GREEN_D} 100%);
-        color: white;
-        padding: 28px 32px;
-        border-radius: 18px;
-        box-shadow: 0 12px 30px rgba(15, 110, 86, 0.25);
-        margin-bottom: 24px;
-        position: relative;
-        overflow: hidden;
-    ">
-        <div style="
-            position: absolute; top: -50px; right: -50px;
-            width: 200px; height: 200px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-        "></div>
-        <div style="position: relative; z-index: 1;">
-            <div style="font-size: 0.85rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">
-                Bonjour 👋
-            </div>
-            <h1 style="margin: 4px 0 6px; color: white; font-size: 2rem; font-weight: 800;">
-                Tableau de bord Swiftli
-            </h1>
-            <p style="margin: 0; opacity: 0.9; font-size: 0.95rem;">
-                Vue d'ensemble en temps réel · {datetime.now().strftime("%d %B %Y · %H:%M:%S")}
-            </p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    page_header(
+        icon="📊",
+        eyebrow="Bonjour 👋 · Espace administrateur",
+        title="Tableau de bord Swiftli",
+        subtitle=f"Vue d'ensemble en temps réel · {datetime.now().strftime('%d %B %Y · %H:%M:%S')}",
+        grad_from="#6D4C41", grad_to="#3E2723",
+    )
 
     # ── Barre de contrôle : auto-rafraîchissement dynamique ──────────────
     rc1, rc2, rc3 = st.columns([1.3, 1, 1])
@@ -1400,22 +1464,12 @@ def tab_dashboard():
 
 # ─── 2. Utilisateurs ──────────────────────────────────────────────────────────
 def tab_users():
-    # Header hero
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #795548 0%, #4E342E 100%);
-        color: white;
-        padding: 22px 28px;
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(24, 95, 165, 0.25);
-        margin-bottom: 20px;
-        position: relative; overflow: hidden;
-    ">
-        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
-        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">👥 Gestion des utilisateurs</h2>
-        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Filtrer, rechercher et gérer tous les comptes Swiftli</p>
-    </div>
-    """, unsafe_allow_html=True)
+    page_header(
+        icon="👥", eyebrow="Gestion · Comptes",
+        title="Gestion des utilisateurs",
+        subtitle="Filtrer, rechercher et gérer tous les comptes Swiftli",
+        grad_from="#795548", grad_to="#3E2723",
+    )
 
     with st.spinner("Chargement..."):
         users = fs_get("users", _token())
@@ -1608,22 +1662,12 @@ def tab_users():
 
 # ─── 3. KYC ───────────────────────────────────────────────────────────────────
 def tab_kyc():
-    # Header hero
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #A1887F 0%, #6D4C41 100%);
-        color: white;
-        padding: 22px 28px;
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(239, 159, 39, 0.25);
-        margin-bottom: 20px;
-        position: relative; overflow: hidden;
-    ">
-        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
-        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">🆔 Vérification d'identité (KYC)</h2>
-        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Examiner les documents, comparer photo profil ↔ CIN, approuver ou rejeter</p>
-    </div>
-    """, unsafe_allow_html=True)
+    page_header(
+        icon="🆔", eyebrow="Conformité · Identité",
+        title="Vérification d'identité (KYC)",
+        subtitle="Examiner les documents, comparer photo profil ↔ CIN, approuver ou rejeter",
+        grad_from="#8D6E63", grad_to="#4E342E",
+    )
 
     with st.spinner("Chargement depuis Firestore..."):
         users = fs_get("users", _token())
@@ -1789,22 +1833,12 @@ def tab_kyc():
 
 # ─── 4. Demandes ─────────────────────────────────────────────────────────────
 def tab_demandes():
-    # Header hero
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #8D6E63 0%, #5D4037 100%);
-        color: white;
-        padding: 22px 28px;
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(139, 92, 246, 0.25);
-        margin-bottom: 20px;
-        position: relative; overflow: hidden;
-    ">
-        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
-        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">📦 Gestion des demandes</h2>
-        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Suivre, modifier et résoudre toutes les demandes d'envoi</p>
-    </div>
-    """, unsafe_allow_html=True)
+    page_header(
+        icon="📦", eyebrow="Opérations · Envois",
+        title="Gestion des demandes",
+        subtitle="Suivre, modifier et résoudre toutes les demandes d'envoi",
+        grad_from="#8D6E63", grad_to="#5D4037",
+    )
 
     with st.spinner("Chargement..."):
         demandes = fs_get("demandes", _token())
@@ -1889,22 +1923,12 @@ def tab_demandes():
 
 # ─── 5. Trajets ───────────────────────────────────────────────────────────────
 def tab_trajets():
-    # Header hero
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #A1745C 0%, #6F4E37 100%);
-        color: white;
-        padding: 22px 28px;
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(20, 184, 166, 0.25);
-        margin-bottom: 20px;
-        position: relative; overflow: hidden;
-    ">
-        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
-        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">🛣️ Trajets publiés</h2>
-        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Tous les trajets disponibles, en cours et expirés</p>
-    </div>
-    """, unsafe_allow_html=True)
+    page_header(
+        icon="🛣️", eyebrow="Mobilité · Trajets",
+        title="Trajets publiés",
+        subtitle="Tous les trajets disponibles, en cours et expirés",
+        grad_from="#A1745C", grad_to="#6F4E37",
+    )
 
     with st.spinner("Chargement..."):
         trajets = fs_get("trajets", _token())
@@ -1955,22 +1979,12 @@ def tab_trajets():
 
 # ─── 6. Litiges ───────────────────────────────────────────────────────────────
 def tab_litiges():
-    # Header hero
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #B5482F 0%, #7B2D1A 100%);
-        color: white;
-        padding: 22px 28px;
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(226, 75, 74, 0.25);
-        margin-bottom: 20px;
-        position: relative; overflow: hidden;
-    ">
-        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
-        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">⚠️ Litiges & Réclamations</h2>
-        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Résolution des conflits et médiation entre utilisateurs</p>
-    </div>
-    """, unsafe_allow_html=True)
+    page_header(
+        icon="⚠️", eyebrow="Support · Médiation",
+        title="Litiges & Réclamations",
+        subtitle="Résolution des conflits et médiation entre utilisateurs",
+        grad_from="#B5482F", grad_to="#7B2D1A",
+    )
 
     with st.spinner("Chargement..."):
         demandes = fs_get("demandes",      _token())
@@ -2025,22 +2039,12 @@ def tab_litiges():
 
 # ─── 7. Notifications ─────────────────────────────────────────────────────────
 def tab_notifications():
-    # Header hero
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #C8860D 0%, #8B5E0D 100%);
-        color: white;
-        padding: 22px 28px;
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(245, 158, 11, 0.25);
-        margin-bottom: 20px;
-        position: relative; overflow: hidden;
-    ">
-        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
-        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">🔔 Notifications</h2>
-        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Envoyer des messages ciblés ou en masse aux utilisateurs</p>
-    </div>
-    """, unsafe_allow_html=True)
+    page_header(
+        icon="🔔", eyebrow="Communication · Diffusion",
+        title="Notifications",
+        subtitle="Envoyer des messages ciblés ou en masse aux utilisateurs",
+        grad_from="#C8860D", grad_to="#8B5E0D",
+    )
 
     with st.spinner("Chargement..."):
         users = fs_get("users", _token())
@@ -2094,22 +2098,12 @@ _DISTANCES = {
 }
 
 def tab_tarification():
-    # Header hero
-    st.markdown(f"""
-    <div style="
-        background: linear-gradient(135deg, #8D6E63 0%, #4E342E 100%);
-        color: white;
-        padding: 22px 28px;
-        border-radius: 16px;
-        box-shadow: 0 10px 24px rgba(16, 185, 129, 0.25);
-        margin-bottom: 20px;
-        position: relative; overflow: hidden;
-    ">
-        <div style="position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.1);border-radius:50%"></div>
-        <h2 style="margin:0;color:white;font-weight:800;font-size:1.7rem">💰 Simulateur de tarification</h2>
-        <p style="margin:4px 0 0;opacity:0.9;font-size:0.9rem">Calculer le prix suggéré selon poids, distance et options</p>
-    </div>
-    """, unsafe_allow_html=True)
+    page_header(
+        icon="💰", eyebrow="Finance · Pricing",
+        title="Simulateur de tarification",
+        subtitle="Calculer le prix suggéré selon poids, distance et options",
+        grad_from="#8D6E63", grad_to="#4E342E",
+    )
     villes = ["Casablanca","Rabat","Marrakech","Fès","Tanger","Agadir","Meknès","Oujda"]
     col1, col2 = st.columns(2)
     with col1:
