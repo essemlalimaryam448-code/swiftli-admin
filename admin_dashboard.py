@@ -315,13 +315,88 @@ st.markdown(f"""
       box-shadow: 0 0 0 3px rgba(15, 110, 86, 0.1) !important;
   }}
 
-  /* Selectbox dropdown */
+  /* ─── Selectbox FERMÉ (champ visible) ────────────────────── */
   [data-baseweb="select"] > div {{
-      background: white !important;
+      background: #FFFFFF !important;
+      color: #3E2723 !important;
+      border: 1.5px solid #D7CCC8 !important;
+      border-radius: 10px !important;
+  }}
+  [data-baseweb="select"] > div * {{ color: #3E2723 !important; }}
+  [data-baseweb="select"] svg {{ fill: #6D4C41 !important; color: #6D4C41 !important; }}
+
+  /* ─── Selectbox OUVERT (menu déroulant / popover) ────────── */
+  [data-baseweb="popover"],
+  [data-baseweb="popover"] > div,
+  [data-baseweb="menu"],
+  [data-baseweb="menu"] ul,
+  div[role="listbox"],
+  ul[role="listbox"] {{
+      background: #FFFFFF !important;
+      border: 1px solid #D7CCC8 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 8px 24px rgba(78, 52, 46, 0.18) !important;
+  }}
+  [data-baseweb="popover"] li,
+  [data-baseweb="menu"] li,
+  div[role="listbox"] [role="option"],
+  ul[role="listbox"] li {{
+      background: #FFFFFF !important;
+      color: #3E2723 !important;
+      font-weight: 600 !important;
+  }}
+  /* Option survolée / sélectionnée */
+  [data-baseweb="menu"] li:hover,
+  div[role="listbox"] [role="option"]:hover,
+  [data-baseweb="menu"] li[aria-selected="true"],
+  div[role="listbox"] [aria-selected="true"] {{
+      background: #F0E6DA !important;
+      color: #4E342E !important;
+  }}
+  [data-baseweb="popover"] li *,
+  [data-baseweb="menu"] li * {{ color: #3E2723 !important; }}
+
+  /* ─── DataFrame / tableau : fond clair, texte brun ───────── */
+  [data-testid="stDataFrame"],
+  [data-testid="stDataFrame"] > div,
+  [data-testid="stDataFrame"] [data-testid="stTable"] {{
+      background: #FFFFFF !important;
+      border: 1px solid #D7CCC8 !important;
+      border-radius: 12px !important;
+  }}
+  [data-testid="stDataFrame"] * {{
       color: #3E2723 !important;
   }}
-  [data-baseweb="select"] * {{ color: #3E2723 !important; }}
-  [data-baseweb="popover"] li {{ color: #3E2723 !important; }}
+  /* En-têtes de colonnes */
+  [data-testid="stDataFrame"] [role="columnheader"],
+  [data-testid="stDataFrame"] thead th {{
+      background: #8D6E63 !important;
+      color: #FFFFFF !important;
+      font-weight: 800 !important;
+  }}
+  [data-testid="stDataFrame"] [role="columnheader"] *,
+  [data-testid="stDataFrame"] thead th * {{
+      color: #FFFFFF !important;
+  }}
+  /* Cellules */
+  [data-testid="stDataFrame"] [role="gridcell"],
+  [data-testid="stDataFrame"] tbody td {{
+      background: #FFFFFF !important;
+      color: #3E2723 !important;
+      font-weight: 500 !important;
+  }}
+  /* Lignes alternées (zébrures) */
+  [data-testid="stDataFrame"] tbody tr:nth-child(even) td {{
+      background: #FAF6F1 !important;
+  }}
+  [data-testid="stDataFrame"] tbody tr:hover td {{
+      background: #F0E6DA !important;
+  }}
+
+  /* ─── Tableau st.table classique ─────────────────────────── */
+  table {{ background: #FFFFFF !important; color: #3E2723 !important; }}
+  table th {{ background: #8D6E63 !important; color: #FFFFFF !important; }}
+  table td {{ color: #3E2723 !important; }}
 
   /* Number input */
   .stNumberInput input {{
